@@ -1,9 +1,9 @@
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Set, Union
 
-import jpype.imports
 from jpype import JImplements, JOverride
 from java.lang import Throwable as JThrowable
+from java.util import ArrayList, HashSet
 from java.util import List as JList
 from org.apache.rocketmq.client.consumer import AllocateMessageQueueStrategy as JAllocateMessageQueueStrategy
 from org.apache.rocketmq.client.consumer import DefaultMQPullConsumer, DefaultMQPushConsumer
@@ -15,10 +15,11 @@ from org.apache.rocketmq.client.consumer.listener import ConsumeConcurrentlyCont
 from org.apache.rocketmq.client.consumer.listener import ConsumeConcurrentlyStatus as JConsumeConcurrentlyStatus
 from org.apache.rocketmq.client.consumer.listener import ConsumeOrderlyContext as JConsumeOrderlyContext
 from org.apache.rocketmq.client.consumer.listener import ConsumeOrderlyStatus as JConsumeOrderlyStatus
+from org.apache.rocketmq.client.consumer.rebalance import AllocateMessageQueueAveragely,AllocateMessageQueueAveragelyByCircle,AllocateMessageQueueByConfig,AllocateMessageQueueByMachineRoom,AllocateMessageQueueConsistentHash
 from org.apache.rocketmq.client.consumer.store import OffsetStore as JOffsetStore
 from org.apache.rocketmq.client.consumer.store import ReadOffsetType as JReadOffsetType
 from org.apache.rocketmq.common.consumer import ConsumeFromWhere as JConsumeFromWhere
-from .common import BaseClient, MessageExt, MessageModel, MessageQueue, QueryResult, Throwable, ToStringMixin
+from .common import BaseClient, ExpressionType, MessageExt, MessageModel, MessageQueue, Throwable
 
 class PullStatus(Enum):
     FOUND = JPullStatus.FOUND
@@ -43,6 +44,13 @@ class ConsumeConcurrentlyStatus(Enum):
 class ConsumeOrderlyStatus(Enum):
     SUCCESS = JConsumeOrderlyStatus.SUCCESS
     SUSPEND_CURRENT_QUEUE_A_MOMENT = JConsumeOrderlyStatus.SUCCESS
+
+class AllocateMessageQueueStrategyType(Enum):
+    AVG = AllocateMessageQueueAveragely
+    AVG_BY_CIRCLE = AllocateMessageQueueAveragelyByCircle
+    CONFIG = AllocateMessageQueueByConfig
+    MACHINE_ROOM = AllocateMessageQueueByMachineRoom
+    CONSISTENT_HASH = AllocateMessageQueueConsistentHash
 
 class AllocateMessageQueueStrategy:
     def __init__(self, allocate_message_queue_strategy:JAllocateMessageQueueStrategy):
@@ -123,12 +131,12 @@ class MessageSelector:
         return MessageSelector(JMessageSelector.byTag(tag))
 
     @property
-    def expressionType(self) -> str:
-        return self.this.getExpressionType()
+    def expressionType(self) -> ExpressionType:
+        return ExpressionType(self.this.getExpressionType())
     
     @property
     def expression(self) -> str:
-        return self.this.getExpression()
+        return str(self.this.getExpression())
 
 class OffsetStore:
     def __init__(self, offset_store:JOffsetStore):
@@ -141,7 +149,7 @@ class OffsetStore:
         self.this.updateOffset(mq.this, offset, increaseOnly)
 
     def readOffset(self, mq:MessageQueue, _type:ReadOffsetType) -> int:
-        self.this.readOffset(mq.this, _type.value)
+        return int(self.this.readOffset(mq.this, _type.value))
 
     def persistAll(self, mqs:List[MessageQueue]):
         self.this.persistAll([mq.this for mq in mqs])
@@ -157,6 +165,41 @@ class OffsetStore:
 
     def updateConsumeOffsetToBroker(self, mq:MessageQueue, offset:int, isOneway:bool):
         self.this.updateConsumeOffsetToBroker(mq.this, offset, isOneway)
+
+class PullResult(list):
+    def __init__(self, 
+        pull_result:Optional[JPullResult] = None,
+        pullStatus:Optional[PullStatus] = None, 
+        nextBeginOffset:Optional[int] = None,
+        minOffset:Optional[int] = None, 
+        maxOffset:Optional[int] = None,
+        msgFoundList:Union[ArrayList, List[MessageExt], None] = None,
+        *args, **kwargs):
+        if pull_result is None == pullStatus is None or nextBeginOffset is None or minOffset is None or maxOffset is None or msgFoundList is None:
+            raise Exception('Exactly one of pull_result and nextBeginOffset+minOffset+maxOffset+msgFoundList must be specified')
+        elif pull_result is not None:
+            self.this = pull_result
+        else:
+            self.this = JPullResult(pullStatus.value, nextBeginOffset, minOffset, maxOffset,
+                msgFoundList if isinstance(msgFoundList,ArrayList) else ArrayList([m.this for m in msgFoundList])
+            )
+        list.__init__(self, [MessageExt(msg) for msg in self.this.getMsgFoundList()])
+
+    @property
+    def pullStatus(self) -> PullStatus:
+        return PullStatus(self.this.getPullStatus())
+    
+    @property
+    def nextBeginOffset(self) -> int:
+        return int(self.this.getNextBeginOffset())
+
+    @property    
+    def minOffset(self) -> int:
+        return int(self.this.getMinOffset())
+
+    @property
+    def maxOffset(self) -> int:
+        return int(self.this.getMaxOffset())
 
 @JImplements('org.apache.rocketmq.client.consumer.PullCallback')
 class PullCallback:
@@ -194,49 +237,7 @@ class MessageListenerOrderly:
         if self.consumeMessage is not None:
             self.consumeMessage([MessageExt(msg) for msg in msgs], ConsumeOrderlyContext(context))
 
-class PullResult(list, ToStringMixin):
-    def __init__(self, pull_result:JPullResult):
-        self.this = pull_result
-        list.__init__([MessageExt(msg) for msg in self.this.getMsgFoundList()])
-
-    @property
-    def pullStatus(self) -> PullStatus:
-        return PullStatus(self.this.getPullStatus())
-    
-    @property
-    def nextBeginOffset(self) -> int:
-        return self.this.nextBeginOffset()
-
-    @property    
-    def minOffset(self) -> int:
-        return self.this.getMinOffset()
-
-    @property
-    def maxOffset(self) -> int:
-        return self.this.getMaxOffset()
-
 class BaseConsumer(BaseClient):
-    def createTopic(self, key:str, newTopic:str, queueNum:int, topicSysFlag:Optional[int]=0):
-        self.this.createTopic(key, newTopic, queueNum, topicSysFlag)
-    
-    def searchOffset(self, mq:MessageQueue, timestamp:int) -> int:
-        return self.this.searchOffset(mq.this, timestamp)
-    
-    def maxOffset(self, mq:MessageQueue) -> int:
-        return self.this.maxOffset(mq.this)
-
-    def minOffset(self, mq:MessageQueue) -> int:
-        return self.this.minOffset(mq)
-
-    def earliestMsgStoreTime(self, mq:MessageQueue) -> int:
-        return self.this.earliestMsgStoreTime(mq)
-
-    def queryMessage(self, topic:str, key:str, maxNum:int, begin:int, end:int) -> QueryResult:
-        return QueryResult(self.this.queryMessage(topic, key, maxNum, begin, end))
-    
-    def viewMessage(self, offsetMsgId:str) -> MessageExt:
-        return MessageExt(self.this.viewMessage(offsetMsgId))
-
     @property
     def allocateMessageQueueStrategy(self) -> AllocateMessageQueueStrategy:
         return AllocateMessageQueueStrategy(self.this.getAllocateMessageQueueStrategy()) 
@@ -252,13 +253,6 @@ class BaseConsumer(BaseClient):
         self.this.setConsumerGroup(consumerGroup)
 
     @property
-    def messageQueueListener(self) -> MessageQueueListener:
-        return MessageQueueListener(self.this.getMessageQueueListener)
-    
-    def setMessageQueueListener(self, messageQueueListener:MessageQueueListener):
-        self.this.setMessageQueueListener(messageQueueListener.this)
-
-    @property
     def messageModel(self) -> MessageModel:
         return MessageModel(self.this.getMessageModel())
     
@@ -271,12 +265,6 @@ class BaseConsumer(BaseClient):
     def fetchSubscribeMessageQueues(self, topic:str) -> List[MessageQueue]:
         return [MessageQueue(mq) for mq in self.this.fetchSubscribeMessageQueues(topic)]
 
-    def start(self):
-        self.this.start()
-    
-    def shutdown(self):
-        self.this.shutdown()
-
     @property
     def offsetStore(self) -> OffsetStore:
         return OffsetStore(self.this.getOffsetStore())
@@ -285,13 +273,14 @@ class BaseConsumer(BaseClient):
         self.this.setOffsetStore(offsetStore.this)
 
     def isUnitMode(self) -> bool:
-        return self.this.isUnitMode()
+        return bool(self.this.isUnitMode())
     
     def setUnitMode(self, isUnitMode:bool):
         self.this.setUnitMode(isUnitMode)
 
+    @property
     def maxReconsumeTimes(self) -> int:
-        return self.this.getMaxReconsumeTimes()
+        return int(self.this.getMaxReconsumeTimes())
     
     def setMaxReconsumeTimes(self, maxReconsumeTimes:int):
         self.this.setMaxReconsumeTimes(maxReconsumeTimes)
@@ -299,33 +288,42 @@ class BaseConsumer(BaseClient):
 class PullConsumer(BaseConsumer):
     def __init__(self, consumerGroup:Optional[str]=None):
         BaseClient.__init__(self, DefaultMQPullConsumer, consumerGroup)
+    
+    @property
+    def messageQueueListener(self) -> MessageQueueListener:
+        return MessageQueueListener(self.this.getMessageQueueListener())
+    
+    def setMessageQueueListener(self, messageQueueListener:MessageQueueListener):
+        self.this.setMessageQueueListener(messageQueueListener.this)
 
     @property
     def brokerSuspendMaxTimeMillis(self) -> int:
-        return self.this.getBrokerSuspendMaxTimeMillis()
+        return int(self.this.getBrokerSuspendMaxTimeMillis())
     
     def setBrokerSuspendMaxTimeMillis(self, brokerSuspendMaxTimeMillis:int):
         self.this.setBrokerSuspendMaxTimeMillis(brokerSuspendMaxTimeMillis)
 
     @property
-    def consumerPullTimeoutMillis(self):
-        return self.this.getConsumerPullTimeoutMillis()
+    def consumerPullTimeoutMillis(self) -> int:
+        return int(self.this.getConsumerPullTimeoutMillis())
     
     def setConsumerPullTimeoutMillis(self, consumerPullTimeoutMillis:int):
         self.this.setConsumerPullTimeoutMillis(consumerPullTimeoutMillis)
     
     @property
     def consumerTimeoutMillisWhenSuspend(self) -> int:
-        return self.this.getConsumerTimeoutMillisWhenSuspend()
+        return int(self.this.getConsumerTimeoutMillisWhenSuspend())
     
     def setConsumerTimeoutMillisWhenSuspend(self, consumerTimeoutMillisWhenSuspend:int):
         self.this.setConsumerTimeoutMillisWhenSuspend(consumerTimeoutMillisWhenSuspend)
     
-    def registerTopics(self) -> List[str]:
-        return list(self.this.getRegisterTopics())
+    @property
+    def registerTopics(self) -> Set[str]:
+        return set(self.this.getRegisterTopics())
 
-    def setRegisterTopics(self, registerTopics:List[str]):
-        self.this.setRegisterTopics(registerTopics)
+    def setRegisterTopics(self, registerTopics:Union[HashSet,Set[str]]):
+        rt = registerTopics if isinstance(registerTopics,HashSet) else HashSet(registerTopics)
+        self.this.setRegisterTopics(rt)
     
     def registerMessageQueueListener(self, topic:str, listener:MessageQueueListener):
         self.this.registerMessageQueueListener(topic, listener.this)
@@ -365,81 +363,82 @@ class PushConsumer(BaseConsumer):
 
     @property
     def consumeConcurrentlyMaxSpan(self) -> int:
-        return self.this.getConsumeConcurrentlyMaxSpan()
+        return int(self.this.getConsumeConcurrentlyMaxSpan())
     
     def setConsumeConcurrentlyMaxSpan(self, consumeConcurrentlyMaxSpan:int):
         self.this.setConsumeConcurrentlyMaxSpan(consumeConcurrentlyMaxSpan)
 
     @property
     def consumeFromWhere(self) -> ConsumeFromWhere:
-        return ConsumeFromWhere(self.getConsumeFromWhere())
+        return ConsumeFromWhere(self.this.getConsumeFromWhere())
 
     def setConsumeFromWhere(self, consumeFromWhere:ConsumeFromWhere):
         self.this.setConsumeFromWhere(consumeFromWhere.value)
 
     @property
     def consumeMessageBatchMaxSize(self) -> int:
-        return self.this.getConsumeMessageBatchMaxSize()
+        return int(self.this.getConsumeMessageBatchMaxSize())
 
     def setConsumeMessageBatchMaxSize(self, consumeMessageBatchMaxSize:int):
         self.this.setConsumeMessageBatchMaxSize(consumeMessageBatchMaxSize)
 
     @property
     def consumeThreadMax(self) -> int:
-        return self.this.getConsumeThreadMax()
+        return int(self.this.getConsumeThreadMax())
     
     def setConsumeThreadMax(self, consumeThreadMax:int):
         return self.this.setConsumeThreadMax(consumeThreadMax)
 
     @property
     def consumeThreadMin(self) -> int:
-        return self.this.getConsumeThreadMin()
+        return int(self.this.getConsumeThreadMin())
     
     def setConsumeThreadMin(self, consumeThreadMin:int):
         return self.this.setConsumeThreadMin(consumeThreadMin)
 
     @property
     def pullBatchSize(self) -> int:
-        return self.this.getPullBatchSize()
+        return int(self.this.getPullBatchSize())
 
     def setPullBatchSize(self, pullBatchSize:int):
         self.this.setPullBatchSize(pullBatchSize)
 
     @property
     def pullInterval(self) -> int:
-        return self.this.getPullInterval()
+        return int(self.this.getPullInterval())
 
     def setPullInterval(self, pullInterval:int):
         return self.this.setPullInterval(pullInterval)
 
     @property
     def pullThresholdForQueue(self) -> int:
-        return self.this.getPullThresholdForQueue()
+        return int(self.this.getPullThresholdForQueue())
 
     def setPullThresholdForQueue(self, pullThresholdForQueue:int):
         self.this.setPullThresholdForQueue(pullThresholdForQueue)
 
     @property
     def pullThresholdForTopic(self) -> int:
-        return self.this.getPullThresholdForTopic()
+        return int(self.this.getPullThresholdForTopic())
 
     def setPullThresholdForTopic(self, pullThresholdForTopic:int):
         self.this.setPullThresholdForTopic(pullThresholdForTopic)
 
     @property
-    def getPullThresholdSizeForQueue(self) -> int:
-        return self.this.pullThresholdSizeForQueue()
+    def pullThresholdSizeForQueue(self) -> int:
+        return int(self.this.getPullThresholdSizeForQueue())
 
     def setPullThresholdSizeForQueue(self, pullThresholdSizeForQueue:int):
         self.this.setPullThresholdSizeForQueue(pullThresholdSizeForQueue)
 
     @property
     def pullThresholdSizeForTopic(self) -> int:
-        return self.this.getPullThresholdSizeForTopic()
+        return int(self.this.getPullThresholdSizeForTopic())
 
     def setPullThresholdSizeForTopic(self, pullThresholdSizeForTopic:int):
         self.this.setPullThresholdSizeForTopic(pullThresholdSizeForTopic)
 
+    @property
     def subscription(self) -> Dict[str,str]:
         return {k:v for k,v in self.this.getSubscription().items()}
 
@@ -471,33 +470,34 @@ class PushConsumer(BaseConsumer):
 
     @property
     def consumeTimestamp(self) -> str:
-        return self.this.getConsumeTimestamp()
+        return str(self.this.getConsumeTimestamp())
 
     def setConsumeTimestamp(self, consumeTimestamp:str):
         self.this.setConsumeTimestamp(consumeTimestamp)
 
     def isPostSubscriptionWhenPull(self) -> bool:
-        return self.this.isPostSubscriptionWhenPull()
+        return bool(self.this.isPostSubscriptionWhenPull())
 
     def setPostSubscriptionWhenPull(self, postSubscriptionWhenPull:bool):
         self.this.setPostSubscriptionWhenPull(postSubscriptionWhenPull)
 
+    @property
     def adjustThreadPoolNumsThreshold(self) -> int:
-        return self.this.getAdjustThreadPoolNumsThreshold()
+        return int(self.this.getAdjustThreadPoolNumsThreshold())
 
     def setAdjustThreadPoolNumsThreshold(self, adjustThreadPoolNumsThreshold:int):
         self.this.setAdjustThreadPoolNumsThreshold(adjustThreadPoolNumsThreshold)
     
     @property
     def suspendCurrentQueueTimeMillis(self) -> int:
-        return self.this.getSuspendCurrentQueueTimeMillis()
+        return int(self.this.getSuspendCurrentQueueTimeMillis())
 
     def setSuspendCurrentQueueTimeMillis(self, suspendCurrentQueueTimeMillis:int):
         self.this.setSuspendCurrentQueueTimeMillis(suspendCurrentQueueTimeMillis)
 
     @property
     def consumeTimeout(self) -> int:
-        return self.this.getConsumeTimeout()
+        return int(self.this.getConsumeTimeout())
 
     def setConsumeTimeout(self, consumeTimeout:int):
         self.this.setConsumeTimeout(consumeTimeout)

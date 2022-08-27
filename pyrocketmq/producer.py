@@ -1,7 +1,6 @@
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Union
 
-import jpype.imports
 from jpype import JImplements, JOverride
 from java.lang import Object as JObject
 from java.lang import Throwable as JThrowable
@@ -11,7 +10,7 @@ from org.apache.rocketmq.client.producer import SendResult as JSendResult
 from org.apache.rocketmq.client.producer import SendStatus as JSendStatus
 from org.apache.rocketmq.common.message import Message as JMessage
 
-from .common import BaseClient, Throwable, Message, MessageBatch, MessageQueue, ToStringMixin
+from .common import BaseClient, Throwable, Message, MessageQueue
 
 class SendStatus(Enum):
     SEND_OK = JSendStatus.SEND_OK
@@ -19,40 +18,60 @@ class SendStatus(Enum):
     FLUSH_SLAVE_TIMEOUT = JSendStatus.FLUSH_SLAVE_TIMEOUT
     SLAVE_NOT_AVAILABLE = JSendStatus.SLAVE_NOT_AVAILABLE
 
-class SendResult(ToStringMixin):
-    def __init__(self, send_result:JSendResult):
-        self.this = send_result
+class SendResult:
+    def __init__(self,
+        send_result:Optional[JSendResult] = None,
+        sendStatus:Optional[SendStatus] = None,
+        msgId:Optional[str] = None,
+        offsetMsgId:Optional[str] = None,
+        messageQueue:Optional[MessageQueue] = None,
+        queueOffset:Optional[int] = None,
+        *args, **kwargs):
+        if send_result is None:
+            self.this = JSendResult()
+            if sendStatus is not None:
+                self.setSendStatus(sendStatus.value)
+            if msgId is not None:
+                self.setMsgId(msgId)
+            if offsetMsgId is not None:
+                self.setOffsetMsgId(offsetMsgId)
+            if messageQueue is not None:
+                self.setMessageQueue(messageQueue.this)
+            if queueOffset is not None:
+                self.setQueueOffset(queueOffset)
+        else:
+            self.this = send_result
 
     @staticmethod
     def encoderSendResultToJson(obj) -> str:
-        return JSendResult.encoderSendResultToJson(obj.this)
+        return str(JSendResult.encoderSendResultToJson(obj.this))
 
     @staticmethod
     def decoderSendResultFromJson(js:str):
         return SendResult(JSendResult.decoderSendResultFromJson(js))
 
-    def isTraceOn(self):
-        return self.this.isTraceOn()
+    def isTraceOn(self) -> bool:
+        return bool(self.this.isTraceOn())
 
     def setTraceOn(self, traceOn:bool):
         self.this.setTraceOn(traceOn)
 
     @property
     def regionId(self) -> str:
-        return self.this.getRegionId()
+        return str(self.this.getRegionId())
 
     def setRegionId(self, regionId:str):
         self.this.setRegionId(regionId)
 
     @property
     def msgId(self) -> str:
-        return self.this.getMsgId()
+        return str(self.this.getMsgId())
 
     def setMsgId(self, msgId:str):
         self.this.setMsgId(msgId)
 
     @property
-    def sendStatus(self):
+    def sendStatus(self) -> SendStatus:
         return SendStatus(self.this.getSendStatus())
 
     def setSendStatus(self, sendStatus:SendStatus):
@@ -67,21 +86,21 @@ class SendResult(ToStringMixin):
 
     @property
     def queueOffset(self) -> int:
-        return self.this.getQueueOffset()
+        return int(self.this.getQueueOffset())
 
     def setQueueOffset(self, queueOffset:int):
         self.this.setQueueOffset(queueOffset)
 
     @property
     def transactionId(self) -> str:
-        return self.this.getTransactionId()
+        return str(self.this.getTransactionId())
 
     def setTransactionId(self, transactionId:str):
         self.this.setTransactionId(transactionId)
 
     @property
     def offsetMsgId(self) -> str:
-        return self.this.getOffsetMsgId()
+        return str(self.this.getOffsetMsgId())
 
     def setOffsetMsgId(self, offsetMsgId:str):
         self.this.setOffsetMsgId(offsetMsgId)
@@ -174,88 +193,88 @@ class Producer(BaseClient):
 
     @property
     def producerGroup(self) -> str:
-        return self.this.getProducerGroup()
+        return str(self.this.getProducerGroup())
 
-    def setProducerGroup(producerGroup:str):
+    def setProducerGroup(self, producerGroup:str):
         self.this.setProducerGroup(producerGroup)
 
     @property
     def createTopicKey(self) -> str:
-        return self.this.getCreateTopicKey()
+        return str(self.this.getCreateTopicKey())
 
     def setCreateTopicKey(self, createTopicKey:str):
         self.this.setCreateTopicKey(createTopicKey)
 
     @property
     def sendMsgTimeout(self) -> int:
-        return self.this.getSendMsgTimeout()
+        return int(self.this.getSendMsgTimeout())
 
     def setSendMsgTimeout(self, sendMsgTimeout:int):
         self.this.setSendMsgTimeout(sendMsgTimeout)
 
     @property
     def compressMsgBodyOverHowmuch(self) -> int:
-        return self.this.getCompressMsgBodyOverHowmuch()
+        return int(self.this.getCompressMsgBodyOverHowmuch())
 
     def setCompressMsgBodyOverHowmuch(self, compressMsgBodyOverHowmuch:int):
         self.this.setCompressMsgBodyOverHowmuch(compressMsgBodyOverHowmuch)
 
     def isRetryAnotherBrokerWhenNotStoreOK(self) -> bool:
-        return self.this.isRetryAnotherBrokerWhenNotStoreOK()
+        return bool(self.this.isRetryAnotherBrokerWhenNotStoreOK())
 
     def setRetryAnotherBrokerWhenNotStoreOK(self, retryAnotherBrokerWhenNotStoreOK:bool):
         self.this.setRetryAnotherBrokerWhenNotStoreOK(retryAnotherBrokerWhenNotStoreOK)
 
     @property
     def maxMessageSize(self) -> int:
-        return self.this.getMaxMessageSize()
+        return int(self.this.getMaxMessageSize())
 
     def setMaxMessageSize(self, maxMessageSize:int):
         self.this.setMaxMessageSize(maxMessageSize)
     
     @property
     def defaultTopicQueueNums(self) -> int:
-        return self.this.getDefaultTopicQueueNums()
+        return int(self.this.getDefaultTopicQueueNums())
 
     def setDefaultTopicQueueNums(self, defaultTopicQueueNums:int):
         self.this.setDefaultTopicQueueNums(defaultTopicQueueNums)
 
     @property
     def retryTimesWhenSendFailed(self) -> int:
-        return self.this.getRetryTimesWhenSendFailed()
+        return int(self.this.getRetryTimesWhenSendFailed())
 
     def setRetryTimesWhenSendFailed(self, retryTimesWhenSendFailed:int):
         self.this.setRetryTimesWhenSendFailed(retryTimesWhenSendFailed)
 
     def isSendMessageWithVIPChannel(self) -> bool:
-        return self.this.isSendMessageWithVIPChannel()
+        return bool(self.this.isSendMessageWithVIPChannel())
 
     def setSendMessageWithVIPChannel(self, sendMessageWithVIPChannel:bool):
         self.this.setSendMessageWithVIPChannel(sendMessageWithVIPChannel)
 
     @property
     def notAvailableDuration(self) -> List[int]:
-        return self.this.getNotAvailableDuration()
+        return [int(i) for i in self.this.getNotAvailableDuration()]
 
     def setNotAvailableDuration(self, notAvailableDuration:List[int]):
         self.this.setNotAvailableDuration(notAvailableDuration)
 
     @property
     def latencyMax(self) -> List[int]:
-        return self.this.getLatencyMax()
+        return [int(i) for i in self.this.getLatencyMax()]
 
     def setLatencyMax(self, latencyMax:List[int]):
         self.this.setLatencyMax(latencyMax)
 
     def isSendLatencyFaultEnable(self) -> bool:
-        return self.this.isSendLatencyFaultEnable()
+        return bool(self.this.isSendLatencyFaultEnable())
 
     def setSendLatencyFaultEnable(self, sendLatencyFaultEnable:bool):
         self.this.setSendLatencyFaultEnable(sendLatencyFaultEnable)
 
     @property
     def retryTimesWhenSendAsyncFailed(self) -> int:
-        return self.this.getRetryTimesWhenSendAsyncFailed()
+        return int(self.this.getRetryTimesWhenSendAsyncFailed())
 
     def setRetryTimesWhenSendAsyncFailed(self, retryTimesWhenSendAsyncFailed:int):
         self.this.setRetryTimesWhenSendAsyncFailed(retryTimesWhenSendAsyncFailed)
