@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from java.lang import Throwable as JThrowable
 from java.net import InetSocketAddress
 from java.util import ArrayList
+from org.apache.rocketmq.client import ClientConfig as JClientConfig
 from org.apache.rocketmq.client import QueryResult as JQueryResult
 from org.apache.rocketmq.common.filter import ExpressionType as JExpressionType
 from org.apache.rocketmq.common.message import Message as JMessage
@@ -12,6 +13,7 @@ from org.apache.rocketmq.common.message import MessageBatch as JMessageBatch
 from org.apache.rocketmq.common.message import MessageExt as JMessageExt
 from org.apache.rocketmq.common.message import MessageQueue as JMessageQueue
 from org.apache.rocketmq.common.protocol.heartbeat import MessageModel as JMessageModel
+from org.apache.rocketmq.remoting.protocol import LanguageCode as JLanguageCode
 
 def socket2tuple(sock:InetSocketAddress) -> Tuple[str,int]:
     ip = inet_ntoa(bytes([i%256 for i in sock.getAddress().getAddress()]))
@@ -25,6 +27,28 @@ class ExpressionType(Enum):
 class MessageModel(Enum):
     BROADCASTING = JMessageModel.BROADCASTING
     CLUSTERING = JMessageModel.CLUSTERING
+
+class LanguageCode(Enum):
+    JAVA = JLanguageCode.JAVA # 0
+    CPP = JLanguageCode.CPP # 1
+    DOTNET = JLanguageCode.DOTNET # 2
+    PYTHON = JLanguageCode.PYTHON # 3
+    DELPHI = JLanguageCode.DELPHI # 4
+    ERLANG = JLanguageCode.ERLANG # 5
+    RUBY = JLanguageCode.RUBY # 6
+    OTHER = JLanguageCode.OTHER # 7
+    HTTP = JLanguageCode.HTTP # 8
+    GO = JLanguageCode.GO # 9
+    PHP = JLanguageCode.PHP # 10
+    OMS = JLanguageCode.OMS # 11
+
+    @staticmethod
+    def valueOf(code:int):
+        return LanguageCode(JLanguageCode.valueOf(code))
+
+    @property
+    def code(self):
+        return int(self.value.getCode())
 
 class Throwable:
     def __init__(self, throwable:JThrowable):
@@ -264,7 +288,7 @@ class QueryResult(list):
         messageList:Union[ArrayList, List[MessageExt], None] = None,
         *args, **kwargs):
         if query_result is not None == indexLastUpdateTimestamp is not None and messageList is not None:
-            raise Exception('Excactly one of query_result and indexLastUpdateTimestamp+messageList must be specified')
+            raise Exception('Exactly one of query_result and indexLastUpdateTimestamp+messageList must be specified')
         elif query_result is not None:
             self.this = query_result
         else:
@@ -338,7 +362,104 @@ class MessageQueue:
     def setQueueId(self, queueId:int):
         self.this.setQueueId(queueId)
 
-class BaseClient:
+class ClientConfig:
+    def __init__(self, client_config:Optional[JClientConfig]=None):
+        self.this = JClientConfig() if client_config is None else client_config
+
+    def buildMQClientId(self) -> str:
+        return str(self.this.buildMQClientId())
+
+    @property
+    def clientIP(self) -> str:
+        return str(self.this.getClientIP())
+
+    def setClientIP(self, clientIP:str):
+        self.this.setClientIP(clientIP)
+
+    @property
+    def instanceName(self) -> str:
+        return str(self.this.getInstanceName())
+
+    def setInstanceName(self, instanceName:str):
+        self.this.setInstanceName(instanceName)
+    
+    def changeInstanceNameToPID(self):
+        self.this.changeInstanceNameToPID()
+
+    def resetClientConfig(self, cc):
+        self.this.resetClientConfig(cc.this)
+    
+    def cloneClientConfig(self):
+        return ClientConfig(self.this.cloneClientConfig())
+
+    @property
+    def namesrvAddr(self) -> str:
+        return str(self.this.getNamesrvAddr())
+
+    def setNamesrvAddr(self, namesrvAddr:str):
+        self.this.setNamesrvAddr(namesrvAddr)
+
+    @property
+    def clientCallbackExecutorThreads(self) -> int:
+        return int(self.this.getClientCallbackExecutorThreads())
+
+    def setClientCallbackExecutorThreads(self, clientCallbackExecutorThreads:int):
+        self.this.setClientCallbackExecutorThreads(clientCallbackExecutorThreads)
+
+    @property
+    def pollNameServerInterval(self) -> int:
+        return int(self.this.getPollNameServerInterval())
+
+    def setPollNameServerInterval(self, pollNameServerInterval:int):
+        self.this.setPollNameServerInterval(pollNameServerInterval)
+
+    @property
+    def heartbeatBrokerInterval(self) -> int:
+        return int(self.this.getHeartbeatBrokerInterval())
+
+    def setHeartbeatBrokerInterval(self, heartbeatBrokerInterval:int):
+        self.this.setHeartbeatBrokerInterval(heartbeatBrokerInterval)
+
+    @property
+    def persistConsumerOffsetInterval(self) -> int:
+        return int(self.this.getPersistConsumerOffsetInterval())
+
+    def setPersistConsumerOffsetInterval(self, persistConsumerOffsetInterval:int):
+        self.this.setPersistConsumerOffsetInterval(persistConsumerOffsetInterval)
+    
+    @property
+    def unitName(self) -> str:
+        return str(self.this.getUnitName())
+
+    def setUnitName(self, unitName:str):
+        self.this.setUnitName(unitName)
+    
+    def isUnitMode(self) -> bool:
+        return bool(self.this.isUnitMode())
+
+    def setUnitMode(self, unitMode:bool):
+        self.this.setUnitMode(unitMode)
+
+    def isVipChannelEnabled(self) -> bool:
+        return bool(self.this.isVipChannelEnabled())
+
+    def setVipChannelEnabled(self, vipChannelEnabled:bool):
+        self.this.setVipChannelEnabled(vipChannelEnabled)
+     
+    def isUseTLS(self) -> bool:
+        return bool(self.this.isUseTLS())
+
+    def setUseTLS(self, useTLS:bool):
+        self.this.setUseTLS(useTLS)
+
+    @property
+    def language(self) -> LanguageCode:
+        return LanguageCode(self.this.getLanguage())
+    
+    def setLanguage(self, language:LanguageCode):
+        self.this.setLanguage(language.value)
+
+class BaseClient(ClientConfig):
     def __init__(self, ClientClass, group:Optional[str]=None):
         if group is None:
             self.this = ClientClass()

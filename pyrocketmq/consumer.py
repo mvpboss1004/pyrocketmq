@@ -19,6 +19,7 @@ from org.apache.rocketmq.client.consumer.rebalance import AllocateMessageQueueAv
 from org.apache.rocketmq.client.consumer.store import OffsetStore as JOffsetStore
 from org.apache.rocketmq.client.consumer.store import ReadOffsetType as JReadOffsetType
 from org.apache.rocketmq.common.consumer import ConsumeFromWhere as JConsumeFromWhere
+
 from .common import BaseClient, ExpressionType, MessageExt, MessageModel, MessageQueue, Throwable
 
 class PullStatus(Enum):
