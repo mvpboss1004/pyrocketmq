@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime
 from typing import Iterable
@@ -216,4 +217,17 @@ class TestConsumer:
             ]:
                 for attr in attrs:
                     java_get_set_is(cs, attr, value)
+
+class TestIntegration:
+    BODY = b'{"name":"Alice", "age":1}'
+    TAGS = 'Hello World'
+    def test_send(self, namesrv, topic, group):
+        pr = Producer(group)
+        pr.setNamesrvAddr(namesrv)
+        pr.start()
+        msg = Message(topic=topic, body=TestIntegration.BODY, tags=TestIntegration.TAGS)
+        sr = pr.send(msg)
+        assert(sr.sendStatus == SendStatus.SEND_OK)
+        print(sr.encoderSendResultToJson())
+        pr.shutdown()
     
