@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import datetime
+from time import sleep
 from typing import Iterable
 from java.lang import Exception as JException
 from java.net import InetSocketAddress
@@ -253,7 +254,7 @@ class TestIntegration:
                 print(json.loads(msg.body))
             return ConsumeConcurrentlyStatus.CONSUME_SUCCESS
 
-    class MyMessageListenerOrderly:
+    class MyMessageListenerOrderly(MessageListenerOrderly):
         def _consumeMessage(self, msgs:List[MessageExt], context:ConsumeOrderlyContext) -> ConsumeOrderlyStatus:
             print('Orderly', context.messageQueue.queueId)
             for msg in msgs:
@@ -337,21 +338,20 @@ class TestIntegration:
         cs.registerMessageListener(TestIntegration.MyMessageListenerConcurrently())
         cs.registerMessageListener(TestIntegration.MyMessageListenerOrderly())
         cs.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET)
+        cs.subscribe(topic, '*')
         cs.start()
+        sleep(5)
 
         cs.suspend()
         cs.subscribe(topic, MessageSelector.byTag(TestIntegration.TAGS))
         cs.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET)
         cs.resume()
+        sleep(5)
 
         cs.suspend()
         cs.unsubscribe(topic)
         cs.subscribe(topic, MessageSelector.bySql(f'TAGS={TestIntegration.TAGS}'))
         cs.resume()
+        sleep(5)
         
-        cs.suspend()
-        cs.unsubscribe()
-        cs.subscribe(topic, '*')
-        cs.resume()
-
         cs.shutdown()
