@@ -6,6 +6,8 @@ from java.lang import Object as JObject
 from java.lang import Throwable as JThrowable
 from java.util import List as JList
 from org.apache.rocketmq.client.producer import DefaultMQProducer
+from org.apache.rocketmq.client.producer import MessageQueueSelector as JMessageQueueSelector
+from org.apache.rocketmq.client.producer import SendCallback as JSendCallback
 from org.apache.rocketmq.client.producer import SendResult as JSendResult
 from org.apache.rocketmq.client.producer import SendStatus as JSendStatus
 from org.apache.rocketmq.common.message import Message as JMessage
@@ -105,7 +107,7 @@ class SendResult:
     def setOffsetMsgId(self, offsetMsgId:str):
         self.this.setOffsetMsgId(offsetMsgId)
 
-@JImplements('org.apache.rocketmq.client.producer.SendCallback')
+@JImplements(JSendCallback)
 class SendCallback:
     def __init__(self, on_success:Optional[Callable]=None, on_exception:Optional[Callable]=None):
         self.onSuccess = on_success
@@ -121,7 +123,7 @@ class SendCallback:
         if self.onException is not None:
             self.onException(Throwable(e))
 
-@JImplements('org.apache.rocketmq.client.producer.MessageQueueSelector')
+@JImplements(JMessageQueueSelector)
 class MessageQueueSelector:
     def __init__(self, select:Optional[Callable]=None):
         self.select = select
@@ -156,7 +158,7 @@ class Producer(BaseClient):
             else:
                 args.append([msg.this for msg in msgs])
         if mq is not None:
-            args.append(mq)
+            args.append(mq.this)
         if selector is not None:
             args.append(selector)
             args.append(arg)

@@ -10,11 +10,14 @@ from org.apache.rocketmq.client.consumer import DefaultMQPullConsumer, DefaultMQ
 from org.apache.rocketmq.client.consumer import MessageQueueListener as JMessageQueueListener
 from org.apache.rocketmq.client.consumer import PullResult as JPullResult
 from org.apache.rocketmq.client.consumer import PullStatus as JPullStatus
+from org.apache.rocketmq.client.consumer import PullCallback as JPullCallback
 from org.apache.rocketmq.client.consumer import MessageSelector as JMessageSelector
 from org.apache.rocketmq.client.consumer.listener import ConsumeConcurrentlyContext as JConsumeConcurrentlyContext
 from org.apache.rocketmq.client.consumer.listener import ConsumeConcurrentlyStatus as JConsumeConcurrentlyStatus
 from org.apache.rocketmq.client.consumer.listener import ConsumeOrderlyContext as JConsumeOrderlyContext
 from org.apache.rocketmq.client.consumer.listener import ConsumeOrderlyStatus as JConsumeOrderlyStatus
+from org.apache.rocketmq.client.consumer.listener import MessageListenerConcurrently as JMessageListenerConcurrently
+from org.apache.rocketmq.client.consumer.listener import MessageListenerOrderly as JMessageListenerOrderly
 from org.apache.rocketmq.client.consumer.rebalance import AllocateMessageQueueAveragely,AllocateMessageQueueAveragelyByCircle,AllocateMessageQueueByConfig,AllocateMessageQueueByMachineRoom,AllocateMessageQueueConsistentHash
 from org.apache.rocketmq.client.consumer.store import OffsetStore as JOffsetStore
 from org.apache.rocketmq.client.consumer.store import ReadOffsetType as JReadOffsetType
@@ -202,7 +205,7 @@ class PullResult(list):
     def maxOffset(self) -> int:
         return int(self.this.getMaxOffset())
 
-@JImplements('org.apache.rocketmq.client.consumer.PullCallback')
+@JImplements(JPullCallback)
 class PullCallback:
     def __init__(self, on_success:Optional[Callable]=None, on_exception:Optional[Callable]=None):
         self.onSuccess = on_success
@@ -218,7 +221,7 @@ class PullCallback:
         if self.onException is not None:
             self.onException(Throwable(e))
 
-@JImplements('org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently')
+@JImplements(JMessageListenerConcurrently)
 class MessageListenerConcurrently:
     def __init__(self, consume_message:Optional[Callable]=None):
         self.consumeMessage = consume_message
@@ -228,7 +231,7 @@ class MessageListenerConcurrently:
         if self.consumeMessage is not None:
             self.consumeMessage([MessageExt(msg) for msg in msgs], ConsumeConcurrentlyContext(context))
 
-@JImplements('org.apache.rocketmq.client.consumer.listener.MessageListenerOrderly')
+@JImplements(JMessageListenerOrderly)
 class MessageListenerOrderly:
     def __init__(self, consume_message:Optional[Callable]=None):
         self.consumeMessage = consume_message

@@ -221,13 +221,30 @@ class TestConsumer:
 class TestIntegration:
     BODY = b'{"name":"Alice", "age":1}'
     TAGS = 'Hello World'
+
     def test_send(self, namesrv, topic, group):
         pr = Producer(group)
         pr.setNamesrvAddr(namesrv)
         pr.start()
+        mqs = pr.fetchPublishMessageQueues(topic)
         msg = Message(topic=topic, body=TestIntegration.BODY, tags=TestIntegration.TAGS)
-        sr = pr.send(msg)
+        for send in (pr.send, pr.sendOneway):
+            sr = send(msg)
+            assert(sr.sendStatus == SendStatus.SEND_OK)
+            for mq in mqs:
+                sr = send(msg, mq=mq)
+                assert(sr.sendStatus == SendStatus.SEND_OK)
+                assert(sr.messageQueue.brokerName==mq.brokerName and sr.messageQueue.queueId==mq.queueId)
+        sr = pr.send([msg])
         assert(sr.sendStatus == SendStatus.SEND_OK)
-        print(sr.encoderSendResultToJson())
+        cb = SendCallback(
+            on_success = lambda sr: print(sr.sendStatus),
+            on_exception = lambda e: e.printStack()
+        )
+        sr = pr.send(sr, send_callback=cb)
+        assert(sr.sendStatus == SendStatus.SEND_OK)
         pr.shutdown()
+    
+    def test_pull(self, namesrv, topic, group):
+        cs = PullConsumer()
     
