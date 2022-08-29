@@ -158,7 +158,7 @@ class MessageBatch(list):
     def encode(self) -> bytes:
         return bytes(self.this.encode())
 
-class MessageExt:
+class MessageExt(Message):
     def __init__(self,
         message_ext:Optional[JMessageExt] = None,
         queueId:Optional[int] = None,

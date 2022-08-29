@@ -196,7 +196,7 @@ class TestConsumer:
         cs = PullConsumer()
         cs.setMessageQueueListener(cs.messageQueueListener)
         for value,attrs in [
-            ({'x'}, ('RegisterTopics',)),
+            (['x'], ('RegisterTopics',)),
             (1, ('BrokerSuspendMaxTimeMillis','ConsumerPullTimeoutMillis','ConsumerTimeoutMillisWhenSuspend'))
             ]:
                 for attr in attrs:
@@ -233,6 +233,15 @@ class TestIntegration:
     class MySendCallback(SendCallback):
         def _onSuccess(self, send_result:SendResult):
             print(SendResult.encoderSendResultToJson(send_result))
+
+        def _onException(self, e:Throwable):
+            e.printStackTrace()
+
+    class MyPullCallback(PullCallback):
+        def _onSuccess(self, pull_result:PullResult):
+            print(pull_result.nextBeginOffset)
+            for msg in pull_result:
+                print(json.loads(msg.body))
 
         def _onException(self, e:Throwable):
             e.printStackTrace()
@@ -283,10 +292,25 @@ class TestIntegration:
         # send with custom callback
         cb = TestIntegration.MySendCallback()
         sr = pr.send(msg, send_callback=cb)
-        assert(sr.sendStatus == SendStatus.SEND_OK)
-        
         pr.shutdown()
     
     def test_pull(self, namesrv, topic, group):
-        cs = PullConsumer()
-    
+        cs = PullConsumer(group)
+        cs.setNamesrvAddr(namesrv)
+        assert(cs.fetchMessageQueuesInBalance() == set())
+        cs.setRegisterTopics([topic])
+        mqs = cs.fetchSubscribeMessageQueues(topic)
+        to = 100
+
+        # pull with timeout
+        for mq in mqs:
+            ofs = cs.fetchConsumeOffset(mq, False)
+            pr = cs.pull(mq, subExpression=TestIntegration.TAGS, offset=ofs, maxNums=1, timeout=to)
+            assert(pr.pullStatus == PullStatus.FOUND)
+        
+        # pull with callback
+        cb = TestIntegration.MyPullCallback()
+        for mq in mqs:
+            ofs = cs.fetchConsumeOffset(mq, False)
+            pr = cs.pull(mq, subExpression=TestIntegration.TAGS, offset=ofs, maxNums=1, pullCallback=cb)
+        

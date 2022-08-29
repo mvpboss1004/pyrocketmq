@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from enum import Enum
-from typing import Dict, List, Optional, Set, Union
+from typing import Dict, List, Optional, Union
 
 from jpype import JImplements, JOverride
 from java.lang import Throwable as JThrowable
@@ -243,7 +243,7 @@ class MessageListenerOrderly:
     @abstractmethod
     def _consumeMessage(self, msgs:List[MessageExt], context:ConsumeOrderlyContext) -> ConsumeOrderlyStatus:
         pass
-    
+
 class BaseConsumer(BaseClient):
     @property
     def allocateMessageQueueStrategy(self) -> AllocateMessageQueueStrategy:
@@ -325,28 +325,28 @@ class PullConsumer(BaseConsumer):
         self.this.setConsumerTimeoutMillisWhenSuspend(consumerTimeoutMillisWhenSuspend)
     
     @property
-    def registerTopics(self) -> Set[str]:
-        return set(self.this.getRegisterTopics())
+    def registerTopics(self) -> List[str]:
+        return list(self.this.getRegisterTopics())
 
-    def setRegisterTopics(self, registerTopics:Union[HashSet,Set[str]]):
+    def setRegisterTopics(self, registerTopics:Union[HashSet,List[str]]):
         rt = registerTopics if isinstance(registerTopics,HashSet) else HashSet(registerTopics)
         self.this.setRegisterTopics(rt)
     
     def registerMessageQueueListener(self, topic:str, listener:MessageQueueListener):
         self.this.registerMessageQueueListener(topic, listener.this)
                 
-    def pull(self, mq:MessageQueue, subExpression:str, offset:int, maxNums:int, pullCallback:Optional[PullCallback]=None, timeout:Optional[int]=None) -> PullResult:
+    def pull(self, mq:MessageQueue, subExpression:str, offset:int, maxNums:int, pullCallback:Optional[PullCallback]=None, timeout:Optional[int]=None) -> Optional[PullResult]:
         if pullCallback is None:
             if timeout is None:
                 res = self.this.pull(mq.this, subExpression, offset, maxNums)
             else:
                 res = self.this.pull(mq.this, subExpression, offset, maxNums, timeout)
+            return PullResult(res)
         else:
             if timeout is None:
                 res = self.this.pull(mq.this, subExpression, offset, maxNums, pullCallback)
             else:
                 res = self.this.pull(mq.this, subExpression, offset, maxNums, pullCallback, timeout)
-        return PullResult(res)
     
     def pullBlockIfNotFound(self, mq:MessageQueue, subExpression:str, offset:int, maxNums:int, pullCallback:Optional[PullCallback]=None) -> PullResult:
         if pullCallback is None:
@@ -359,7 +359,7 @@ class PullConsumer(BaseConsumer):
         self.updateConsumeOffset(mq.this, offset)
     
     def fetchConsumeOffset(self, mq:MessageQueue, fromStore:bool) -> int:
-        return self.this.fetchConsumeOffset(mq.this, fromStore)
+        return int(self.this.fetchConsumeOffset(mq.this, fromStore))
     
     def fetchMessageQueuesInBalance(self, topic:str) -> List[MessageQueue]:
         return [MessageQueue(mq) for mq in self.this.fetchMessageQueuesInBalance(topic)]
