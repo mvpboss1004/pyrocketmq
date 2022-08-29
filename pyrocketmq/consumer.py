@@ -78,6 +78,7 @@ class BaseConsumeContext:
         else:
             raise Exception('At least one of consume_concurrently_context,message_queue must be specified.')
     
+    @property
     def messageQueue(self) -> MessageQueue:
         return MessageQueue(self.this.getMessageQueue())
 
@@ -344,16 +345,16 @@ class PullConsumer(BaseConsumer):
             return PullResult(res)
         else:
             if timeout is None:
-                res = self.this.pull(mq.this, subExpression, offset, maxNums, pullCallback)
+                self.this.pull(mq.this, subExpression, offset, maxNums, pullCallback)
             else:
-                res = self.this.pull(mq.this, subExpression, offset, maxNums, pullCallback, timeout)
+                self.this.pull(mq.this, subExpression, offset, maxNums, pullCallback, timeout)
     
     def pullBlockIfNotFound(self, mq:MessageQueue, subExpression:str, offset:int, maxNums:int, pullCallback:Optional[PullCallback]=None) -> PullResult:
         if pullCallback is None:
-            res = self.this.pullBlockIfNotFound(mq, subExpression, offset, maxNums)
+            return PullResult(self.this.pullBlockIfNotFound(mq, subExpression, offset, maxNums))
         else:
-            res = self.this.pullBlockIfNotFound(mq, subExpression, offset, maxNums, pullCallback)
-        return PullResult(res)
+            self.this.pullBlockIfNotFound(mq, subExpression, offset, maxNums, pullCallback)
+        
     
     def updateConsumeOffset(self, mq:MessageQueue, offset:int):
         self.updateConsumeOffset(mq.this, offset)
