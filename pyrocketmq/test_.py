@@ -343,6 +343,7 @@ class TestIntegration:
                 cs.suspend()
                 cs.unsubscribe(topic)
                 cs.subscribe(topic, filter)
+                cs.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET)
                 cs.resume()
                 sleep(5)
             cs.shutdown()
