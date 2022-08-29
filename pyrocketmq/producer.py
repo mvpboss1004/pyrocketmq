@@ -147,7 +147,7 @@ class Producer(BaseClient):
         mq:Optional[MessageQueue]=None,
         selector:Optional[MessageQueueSelector]=None, arg:Optional[Any]=None,
         send_callback:Optional[SendCallback]=None, timeout:Optional[int]=None,
-        **kwargs) -> SendResult:
+        **kwargs) -> Optional[SendResult]:
         if mq is not None and selector is not None:
             raise Exception('Use at most one of mq or selector, not both')
         args = []
@@ -180,7 +180,9 @@ class Producer(BaseClient):
             ret = self.this.send(args[0],args[1],args[2],args[3])
         else:
             ret = self.this.send(args[0],args[1],args[2],args[3],args[4])
-        return SendResult(ret)
+            
+        if send_callback is None:
+            return SendResult(ret)
 
     def sendOneway(self, msg:Message, *,
         mq:Optional[MessageQueue]=None,

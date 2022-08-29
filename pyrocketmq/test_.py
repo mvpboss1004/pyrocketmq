@@ -257,10 +257,16 @@ class TestIntegration:
         # send, tcp-like, return sendStatus
         sr = pr.send(msg)
         assert(sr.sendStatus == SendStatus.SEND_OK)
+
+        # send with timeout
         sr = pr.send(msg, timeout=to)
         assert(sr.sendStatus == SendStatus.SEND_OK)
+        
+        # send with custom queue selector
         sr = pr.send(msg, selector=slc, arg=arg, timeout=to)
         assert(sr.sendStatus == SendStatus.SEND_OK)
+        
+        # send to specific queue
         mq = slc._select(mqs, msg, arg)
         assert(sr.messageQueue.brokerName==mq.brokerName and sr.messageQueue.queueId==mq.queueId)
         for mq in mqs:
@@ -269,11 +275,16 @@ class TestIntegration:
             assert(sr.messageQueue.brokerName==mq.brokerName and sr.messageQueue.queueId==mq.queueId)
             sr = pr.send(msg, mq=mq, timeout=to)
             assert(sr.sendStatus == SendStatus.SEND_OK)
+        
+        # send batch of messages
         sr = pr.send([msg])
         assert(sr.sendStatus == SendStatus.SEND_OK)
+
+        # send with custom callback
         cb = TestIntegration.MySendCallback()
-        sr = pr.send(sr, send_callback=cb)
+        sr = pr.send(msg, send_callback=cb)
         assert(sr.sendStatus == SendStatus.SEND_OK)
+        
         pr.shutdown()
     
     def test_pull(self, namesrv, topic, group):
