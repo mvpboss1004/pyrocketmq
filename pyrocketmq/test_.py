@@ -333,25 +333,16 @@ class TestIntegration:
         cs.shutdown()
     
     def test_push(self, namesrv, topic, group):
-        cs = PushConsumer(group)
-        cs.setNamesrvAddr(namesrv)
-        cs.registerMessageListener(TestIntegration.MyMessageListenerConcurrently())
-        cs.registerMessageListener(TestIntegration.MyMessageListenerOrderly())
-        cs.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET)
-        cs.subscribe(topic, '*')
-        cs.start()
-        sleep(5)
-
-        cs.suspend()
-        cs.subscribe(topic, MessageSelector.byTag(TestIntegration.TAGS))
-        cs.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET)
-        cs.resume()
-        sleep(5)
-
-        cs.suspend()
-        cs.unsubscribe(topic)
-        cs.subscribe(topic, MessageSelector.bySql(f'TAGS={TestIntegration.TAGS}'))
-        cs.resume()
-        sleep(5)
-        
-        cs.shutdown()
+        filters = ['*', MessageSelector.byTag(TestIntegration.TAGS), MessageSelector.bySql(f'TAGS={TestIntegration.TAGS}')]
+        for ml in (TestIntegration.MyMessageListenerConcurrently(), TestIntegration.MyMessageListenerOrderly()):
+            cs = PushConsumer(group)
+            cs.setNamesrvAddr(namesrv)
+            cs.registerMessageListener(ml)
+            cs.start()
+            for filter in filters:
+                cs.suspend()
+                cs.unsubscribe(topic)
+                cs.subscribe(topic, filter)
+                cs.resume()
+                sleep(5)
+            cs.shutdown()
