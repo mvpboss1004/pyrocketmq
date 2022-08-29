@@ -245,6 +245,20 @@ class TestIntegration:
 
         def _onException(self, e:Throwable):
             e.printStackTrace()
+    
+    class MyMessageListenerConcurrently(MessageListenerConcurrently):
+        def _consumeMessage(self, msgs:List[MessageExt], context:ConsumeConcurrentlyContext) -> ConsumeConcurrentlyStatus:
+            print('Concurrently', context.ackIndex)
+            for msg in msgs:
+                print(json.loads(msg.body))
+            return ConsumeConcurrentlyStatus.CONSUME_SUCCESS
+
+    class MyMessageListenerOrderly:
+        def _consumeMessage(self, msgs:List[MessageExt], context:ConsumeOrderlyContext) -> ConsumeOrderlyStatus:
+            print('Orderly', context.messageQueue.queueId)
+            for msg in msgs:
+                print(json.loads(msg.body))
+            return ConsumeOrderlyStatus.SUCCESS
 
     def test_send(self, namesrv, topic, group):
         pr = Producer(group)
@@ -315,4 +329,29 @@ class TestIntegration:
             ofs = cs.fetchConsumeOffset(mq, False)
             pr = cs.pull(mq, subExpression=TestIntegration.TAGS, offset=ofs, maxNums=1, pullCallback=cb)
         
+        cs.shutdown()
+    
+    def test_push(self, namesrv, topic, group):
+        cs = PushConsumer(group)
+        cs.setNamesrvAddr(namesrv)
+        cs.registerMessageListener(TestIntegration.MyMessageListenerConcurrently())
+        cs.registerMessageListener(TestIntegration.MyMessageListenerOrderly())
+        cs.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET)
+        cs.start()
+
+        cs.suspend()
+        cs.subscribe(topic, MessageSelector.byTag(TestIntegration.TAGS))
+        cs.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET)
+        cs.resume()
+
+        cs.suspend()
+        cs.unsubscribe(topic)
+        cs.subscribe(topic, MessageSelector.bySql(f'TAGS={TestIntegration.TAGS}'))
+        cs.resume()
+        
+        cs.suspend()
+        cs.unsubscribe()
+        cs.subscribe(topic, '*')
+        cs.resume()
+
         cs.shutdown()
