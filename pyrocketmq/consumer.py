@@ -1,5 +1,6 @@
+from abc import abstractmethod
 from enum import Enum
-from typing import Callable, Dict, List, Optional, Set, Union
+from typing import Dict, List, Optional, Set, Union
 
 from jpype import JImplements, JOverride
 from java.lang import Throwable as JThrowable
@@ -207,40 +208,42 @@ class PullResult(list):
 
 @JImplements(JPullCallback)
 class PullCallback:
-    def __init__(self, on_success:Optional[Callable]=None, on_exception:Optional[Callable]=None):
-        self.onSuccess = on_success
-        self.onException = on_exception
-
     @JOverride
     def onSuccess(self, pullResult:JPullResult):
-        if self.onSuccess is not None:
-            self.onSuccess(PullResult(pullResult))
+        self._onSuccess(PullResult(pullResult))
 
     @JOverride
     def onException(self, e:JThrowable):
-        if self.onException is not None:
-            self.onException(Throwable(e))
+        self._onException(Throwable(e))
+
+    @abstractmethod
+    def _onSuccess(self, pull_result:PullResult):
+        pass
+
+    @abstractmethod
+    def _onException(self, e:Throwable):
+        pass
 
 @JImplements(JMessageListenerConcurrently)
 class MessageListenerConcurrently:
-    def __init__(self, consume_message:Optional[Callable]=None):
-        self.consumeMessage = consume_message
-    
     @JOverride
-    def consumeMessage(self, msgs:JList, context:JConsumeConcurrentlyContext) -> ConsumeConcurrentlyStatus:
-        if self.consumeMessage is not None:
-            self.consumeMessage([MessageExt(msg) for msg in msgs], ConsumeConcurrentlyContext(context))
+    def consumeMessage(self, msgs:JList, context:JConsumeConcurrentlyContext):
+        self._consumeMessage([MessageExt(msg) for msg in msgs], ConsumeConcurrentlyContext(context)).value
+    
+    @abstractmethod
+    def _consumeMessage(self, msgs:List[MessageExt], context:ConsumeConcurrentlyContext) -> ConsumeConcurrentlyStatus:
+        pass
 
 @JImplements(JMessageListenerOrderly)
 class MessageListenerOrderly:
-    def __init__(self, consume_message:Optional[Callable]=None):
-        self.consumeMessage = consume_message
-    
     @JOverride
-    def consumeMessage(self, msgs:JList, context:JConsumeOrderlyContext) -> ConsumeOrderlyStatus:
-        if self.consumeMessage is not None:
-            self.consumeMessage([MessageExt(msg) for msg in msgs], ConsumeOrderlyContext(context))
+    def consumeMessage(self, msgs:JList, context:JConsumeOrderlyContext):
+        self._consumeMessage([MessageExt(msg) for msg in msgs], ConsumeOrderlyContext(context)).value
 
+    @abstractmethod
+    def _consumeMessage(self, msgs:List[MessageExt], context:ConsumeOrderlyContext) -> ConsumeOrderlyStatus:
+        pass
+    
 class BaseConsumer(BaseClient):
     @property
     def allocateMessageQueueStrategy(self) -> AllocateMessageQueueStrategy:

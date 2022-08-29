@@ -1,5 +1,6 @@
+from abc import abstractmethod
 from enum import Enum
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, List, Optional, Union
 
 from jpype import JImplements, JOverride
 from java.lang import Object as JObject
@@ -109,29 +110,31 @@ class SendResult:
 
 @JImplements(JSendCallback)
 class SendCallback:
-    def __init__(self, on_success:Optional[Callable]=None, on_exception:Optional[Callable]=None):
-        self.onSuccess = on_success
-        self.onException = on_exception
-
     @JOverride
     def onSuccess(self, sendResult:JSendResult):
-        if self.onSuccess is not None:
-            self.onSuccess(SendResult(sendResult))
+        self._onSuccess(SendResult(sendResult))
 
     @JOverride
     def onException(self, e:JThrowable):
-        if self.onException is not None:
-            self.onException(Throwable(e))
+        self._onException(Throwable(e))
+
+    @abstractmethod
+    def _onSuccess(self, send_result:SendResult):
+        pass
+
+    @abstractmethod
+    def _onException(self, e:Throwable):
+        pass
 
 @JImplements(JMessageQueueSelector)
 class MessageQueueSelector:
-    def __init__(self, select:Optional[Callable]=None):
-        self.select = select
-
     @JOverride
     def select(self, mqs:JList, msg:JMessage, arg:JObject):
-        if self.select is not None:
-            return self.select([MessageQueue(mq) for mq in mqs], Message(msg), arg).this
+        return self._select([MessageQueue(mq) for mq in mqs], Message(msg), arg).this
+
+    @abstractmethod
+    def _select(self, mqs:List[MessageQueue], msg:Message, arg:Any) -> MessageQueue:
+        pass
 
 class Producer(BaseClient):
     def __init__(self, producerGroup:Optional[str]=None):
@@ -191,7 +194,6 @@ class Producer(BaseClient):
             ret = self.this.sendOneway(msg.this, selector, arg)
         else:
             ret = self.this.sendOneway(msg.this)
-        return SendResult(ret)
 
     @property
     def producerGroup(self) -> str:

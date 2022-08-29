@@ -222,25 +222,56 @@ class TestIntegration:
     BODY = b'{"name":"Alice", "age":1}'
     TAGS = 'Hello World'
 
+    class MyMessageQueueSelector(MessageQueueSelector):
+        def _select(self, mqs:List[MessageQueue], msg:Message, arg:Any) -> MessageQueue:
+            try:
+                mq = mqs[json.loads(msg.body)['age'] % len(mqs)]
+            except:
+                mq = mqs[0]
+            return mq
+
+    class MySendCallback(SendCallback):
+        def _onSuccess(self, send_result:SendResult):
+            print(SendResult.encoderSendResultToJson(send_result))
+
+        def _onException(self, e:Throwable):
+            e.printStackTrace()
+
     def test_send(self, namesrv, topic, group):
         pr = Producer(group)
         pr.setNamesrvAddr(namesrv)
         pr.start()
+
         mqs = pr.fetchPublishMessageQueues(topic)
         msg = Message(topic=topic, body=TestIntegration.BODY, tags=TestIntegration.TAGS)
-        for send in (pr.send, pr.sendOneway):
-            sr = send(msg)
+        slc = TestIntegration.MyMessageQueueSelector()
+        arg = 0 # useless
+        to = 100
+
+        # sendOneway, udp-like, no return
+        pr.sendOneway(msg)
+        pr.sendOneway(msg, selector=slc, arg=arg)
+        for mq in mqs:
+            pr.sendOneway(msg, mq=mq)
+        
+        # send, tcp-like, return sendStatus
+        sr = pr.send(msg)
+        assert(sr.sendStatus == SendStatus.SEND_OK)
+        sr = pr.send(msg, timeout=to)
+        assert(sr.sendStatus == SendStatus.SEND_OK)
+        sr = pr.send(msg, selector=slc, arg=arg, timeout=to)
+        assert(sr.sendStatus == SendStatus.SEND_OK)
+        mq = slc._select(mqs, msg, arg)
+        assert(sr.messageQueue.brokerName==mq.brokerName and sr.messageQueue.queueId==mq.queueId)
+        for mq in mqs:
+            sr = pr.send(msg, mq=mq)
             assert(sr.sendStatus == SendStatus.SEND_OK)
-            for mq in mqs:
-                sr = send(msg, mq=mq)
-                assert(sr.sendStatus == SendStatus.SEND_OK)
-                assert(sr.messageQueue.brokerName==mq.brokerName and sr.messageQueue.queueId==mq.queueId)
+            assert(sr.messageQueue.brokerName==mq.brokerName and sr.messageQueue.queueId==mq.queueId)
+            sr = pr.send(msg, mq=mq, timeout=to)
+            assert(sr.sendStatus == SendStatus.SEND_OK)
         sr = pr.send([msg])
         assert(sr.sendStatus == SendStatus.SEND_OK)
-        cb = SendCallback(
-            on_success = lambda sr: print(sr.sendStatus),
-            on_exception = lambda e: e.printStack()
-        )
+        cb = TestIntegration.MySendCallback()
         sr = pr.send(sr, send_callback=cb)
         assert(sr.sendStatus == SendStatus.SEND_OK)
         pr.shutdown()
