@@ -297,7 +297,8 @@ class TestIntegration:
     def test_pull(self, namesrv, topic, group):
         cs = PullConsumer(group)
         cs.setNamesrvAddr(namesrv)
-        assert(cs.fetchMessageQueuesInBalance() == set())
+        cs.start()
+        assert(cs.fetchMessageQueuesInBalance(topic) == [])
         cs.setRegisterTopics([topic])
         mqs = cs.fetchSubscribeMessageQueues(topic)
         to = 100
@@ -314,3 +315,4 @@ class TestIntegration:
             ofs = cs.fetchConsumeOffset(mq, False)
             pr = cs.pull(mq, subExpression=TestIntegration.TAGS, offset=ofs, maxNums=1, pullCallback=cb)
         
+        cs.shutdown()

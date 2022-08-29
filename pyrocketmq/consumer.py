@@ -180,7 +180,7 @@ class PullResult(list):
         maxOffset:Optional[int] = None,
         msgFoundList:Union[ArrayList, List[MessageExt], None] = None,
         *args, **kwargs):
-        if pull_result is None == pullStatus is None or nextBeginOffset is None or minOffset is None or maxOffset is None or msgFoundList is None:
+        if pull_result is None == (pullStatus is None or nextBeginOffset is None or minOffset is None or maxOffset is None or msgFoundList is None):
             raise Exception('Exactly one of pull_result and nextBeginOffset+minOffset+maxOffset+msgFoundList must be specified')
         elif pull_result is not None:
             self.this = pull_result
