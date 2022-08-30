@@ -67,7 +67,7 @@ class AllocateMessageQueueStrategy:
 
     @property
     def name(self) -> str:
-        return self.this.getName()
+        return str(self.this.getName())
 
 class BaseConsumeContext:
     def __init__(self, ConsumeContextClass, consume_context=None, message_queue:Optional[MessageQueue]=None):
@@ -88,14 +88,14 @@ class ConsumeConcurrentlyContext(BaseConsumeContext):
 
     @property
     def delayLevelWhenNextConsume(self) -> int:
-        return self.this.getDelayLevelWhenNextConsume()
+        return int(self.this.getDelayLevelWhenNextConsume())
 
     def setDelayLevelWhenNextConsume(self, delayLevelWhenNextConsume:int):
         self.this.setDelayLevelWhenNextConsume(delayLevelWhenNextConsume)
 
     @property
     def ackIndex(self) -> int:
-        return self.this.getAckIndex()
+        return int(self.this.getAckIndex())
 
     def setAckIndex(self, ackIndex:int):
         self.this.setAckIndex(ackIndex)
@@ -105,14 +105,14 @@ class ConsumeOrderlyContext(BaseConsumeContext):
         BaseConsumeContext.__init__(self, JConsumeOrderlyContext, consume_context, message_queue)
     
     def isAutoCommit(self) -> bool:
-        return self.this.isAutoCommit()
+        return bool(self.this.isAutoCommit())
 
     def setAutoCommit(self, autoCommit:bool):
         self.this.setAutoCommit(autoCommit)
 
     @property
     def suspendCurrentQueueTimeMillis(self) -> int:
-        return self.this.getSuspendCurrentQueueTimeMillis()
+        return int(self.this.getSuspendCurrentQueueTimeMillis())
 
     def setSuspendCurrentQueueTimeMillis(self, suspendCurrentQueueTimeMillis:int):
         self.this.setSuspendCurrentQueueTimeMillis(suspendCurrentQueueTimeMillis)
@@ -167,7 +167,7 @@ class OffsetStore:
         self.this.removeOffset(mq.this)
 
     def cloneOffsetTable(self, topic:str) -> Dict[MessageQueue,int]:
-        return {MessageQueue(mq):ofs for mq,ofs in self.cloneOffsetTable(topic).items()}
+        return {MessageQueue(mq):int(ofs) for mq,ofs in self.cloneOffsetTable(topic).items()}
 
     def updateConsumeOffsetToBroker(self, mq:MessageQueue, offset:int, isOneway:bool):
         self.this.updateConsumeOffsetToBroker(mq.this, offset, isOneway)
@@ -255,7 +255,7 @@ class BaseConsumer(BaseClient):
     
     @property
     def consumerGroup(self) -> str:
-        return self.this.getConsumerGroup()
+        return str(self.this.getConsumerGroup())
     
     def setConsumerGroup(self, consumerGroup:str):
         self.this.setConsumerGroup(consumerGroup)
@@ -268,7 +268,7 @@ class BaseConsumer(BaseClient):
         self.this.setMessageModel(messageModel.value)
     
     def sendMessageBack(self, msg:MessageExt, delayLevel:int, brokerName:Optional[str]=None):
-        self.this.sendMessageBack(msg, delayLevel, brokerName)
+        self.this.sendMessageBack(msg.this, delayLevel, brokerName)
 
     def fetchSubscribeMessageQueues(self, topic:str) -> List[MessageQueue]:
         return [MessageQueue(mq) for mq in self.this.fetchSubscribeMessageQueues(topic)]
@@ -327,7 +327,7 @@ class PullConsumer(BaseConsumer):
     
     @property
     def registerTopics(self) -> List[str]:
-        return list(self.this.getRegisterTopics())
+        return [str(t) for t in self.this.getRegisterTopics()]
 
     def setRegisterTopics(self, registerTopics:Union[HashSet,List[str]]):
         rt = registerTopics if isinstance(registerTopics,HashSet) else HashSet(registerTopics)
@@ -349,12 +349,11 @@ class PullConsumer(BaseConsumer):
             else:
                 self.this.pull(mq.this, subExpression, offset, maxNums, pullCallback, timeout)
     
-    def pullBlockIfNotFound(self, mq:MessageQueue, subExpression:str, offset:int, maxNums:int, pullCallback:Optional[PullCallback]=None) -> PullResult:
+    def pullBlockIfNotFound(self, mq:MessageQueue, subExpression:str, offset:int, maxNums:int, pullCallback:Optional[PullCallback]=None) -> Optional[PullResult]:
         if pullCallback is None:
             return PullResult(self.this.pullBlockIfNotFound(mq, subExpression, offset, maxNums))
         else:
             self.this.pullBlockIfNotFound(mq, subExpression, offset, maxNums, pullCallback)
-        
     
     def updateConsumeOffset(self, mq:MessageQueue, offset:int):
         self.updateConsumeOffset(mq.this, offset)
@@ -448,7 +447,7 @@ class PushConsumer(BaseConsumer):
 
     @property
     def subscription(self) -> Dict[str,str]:
-        return {k:v for k,v in self.this.getSubscription().items()}
+        return {str(k):str(v) for k,v in self.this.getSubscription().items()}
 
     def setSubscription(self, subscription:Dict[dict,dict]):
         self.this.setSubscription(subscription)

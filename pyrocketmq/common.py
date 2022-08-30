@@ -47,7 +47,7 @@ class LanguageCode(Enum):
         return LanguageCode(JLanguageCode.valueOf(code))
 
     @property
-    def code(self):
+    def code(self) -> int:
         return int(self.value.getCode())
 
 class Throwable:
@@ -129,7 +129,7 @@ class Message:
 
     @property
     def properties(self) -> Dict[str,str]:
-        return dict(self.this.getProperties())
+        return {str(k):str(v) for k,v in self.this.getProperties().items()}
 
     @property
     def buyerId(self) -> str:
@@ -476,16 +476,16 @@ class BaseClient(ClientConfig):
         self.this.createTopic(key, newTopic, queueNum, topicSysFlag)
     
     def searchOffset(self, mq:MessageQueue, timestamp:int) -> int:
-        return self.this.searchOffset(mq.this, timestamp)
+        return int(self.this.searchOffset(mq.this, timestamp))
 
     def maxOffset(self, mq:MessageQueue) -> int:
-        return self.this.maxOffset(mq.this)
+        return int(self.this.maxOffset(mq.this))
 
     def minOffset(self, mq:MessageQueue) -> int:
-        return self.this.minOffset(mq)
+        return int(self.this.minOffset(mq))
 
     def earliestMsgStoreTime(self, mq:MessageQueue) -> int:
-        return self.this.earliestMsgStoreTime(mq)
+        return int(self.this.earliestMsgStoreTime(mq))
 
     def viewMessage(self, *,
         offsetMsgId:Optional[str]=None,

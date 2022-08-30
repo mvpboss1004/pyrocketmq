@@ -191,11 +191,11 @@ class Producer(BaseClient):
         if mq is not None and selector is not None:
             raise Exception('Use at most one of mq or selector, not both')
         elif mq is not None:
-            ret = self.this.sendOneway(msg.this, mq.this)
+            self.this.sendOneway(msg.this, mq.this)
         elif selector is not None:
-            ret = self.this.sendOneway(msg.this, selector, arg)
+            self.this.sendOneway(msg.this, selector, arg)
         else:
-            ret = self.this.sendOneway(msg.this)
+            self.this.sendOneway(msg.this)
 
     @property
     def producerGroup(self) -> str:
