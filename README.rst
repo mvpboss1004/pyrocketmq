@@ -104,7 +104,7 @@ Currently the existing apis are too outdated. For example:
                 print(json.loads(msg.body))
             return ConsumeConcurrentlyStatus.CONSUME_SUCCESS
 
-    cs = PullConsumer('test_pull_consumer')
+    cs = PushConsumer('test_push_consumer')
     cs.setNamesrvAddr('localhost:9876')
     selector = MessageSelector.byTag('girl')
     ml = MyMessageListenerConcurrently()
