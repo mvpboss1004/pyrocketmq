@@ -1,131 +1,19 @@
 import json
-import os
-from datetime import datetime
 from time import sleep
-from typing import Iterable
-from java.lang import Exception as JException
-from java.net import InetSocketAddress
-from org.apache.rocketmq.common.message import Message as JMessage
+from typing import Callable
 
-from pyrocketmq import *
-
-def print_enums(enums:Iterable):
-    print('')
-    for e in enums:
-        print(','.join([str(i) for i in e]))
-
-def java_get_set_is(obj, attr, value):
-    getattr(obj, 'set'+attr)(value)
-    if isinstance(value, bool):
-        assert(getattr(obj, 'is'+attr)() == value)
-    else:
-        assert(getattr(obj, attr[0].lower()+attr[1:]) == value)
-
-class TestCommon:
-    def test_socket2tuple(self):
-        ip = '127.0.0.1'
-        port = 9876
-        assert(socket2tuple(InetSocketAddress(ip,port)) == (ip,port))
-    
-    def test_enums(self):
-        print_enums((ExpressionType,MessageModel,LanguageCode))
-        for lc,code in zip(LanguageCode, range(len(LanguageCode))):
-            assert(lc == LanguageCode.valueOf(code))
-    
-    def test_Throwable(self):
-        msg = 'x'
-        e = Throwable(JException(msg))
-        assert(e.message==msg)
-        e.printStackTrace()
-
-    def test_Message(self):
-        msg = Message(JMessage())
-        text = 'x'
-        num = 1
-        bl = True
-        for value,attrs in [
-            (text, ('Tags','Keys','BuyerId','Topic','TransactionId',)),
-            (num, ('Flag','DelayTimeLevel')),
-            (bl, ('WaitStoreMsgOK',)),
-            (text.encode(), ('Body',)),
-        ]:
-            for attr in attrs:
-                java_get_set_is(msg, attr, value)
-        msg.putUserProperty(text, text)
-        assert(msg.properties == {
-            'BUYER_ID':text, 'KEYS':text, text:text, 'TAGS':text, 'DELAY':str(num), 'WAIT':str(bl).lower()
-        })
-    
-    def test_MessageBatch(self):
-        text = 'x'
-        msgs = MessageBatch.generateFromList([Message(topic=text, body=text.encode())])
-        for msg in msgs:
-            assert(isinstance(msg, Message))
-        print(msgs.encode().replace(b'\x00',b''))
-    
-    def test_MessageExt(self):
-        msg = MessageExt()
-        t = datetime(1970,1,1,8,0,0,1)
-        num = int(t.timestamp() * 1000)
-        text = '127.0.0.1'
-        addr = (text,num)
-        for value,attrs in [
-            (text, ('MsgId',)),
-            (num, ('QueueId','BornTimestamp','StoreTimestamp','SysFlag','BodyCRC','QueueOffset','CommitLogOffset','StoreSize','ReconsumeTimes','PreparedTransactionOffset')),
-            (addr, ('BornHost','StoreHost'))
-        ]:
-            for attr in attrs:
-                java_get_set_is(msg, attr, value)
-        assert(msg.bornHostString == text)
-        assert(msg.bornHostNameString == 'localhost')
-    
-    def test_QueryResult(self):
-        num = 1000
-        result = QueryResult(indexLastUpdateTimestamp=num, messageList=[MessageExt()])
-        assert(result.indexLastUpdateTimestamp == num)
-        assert(len(result) == 1)
-    
-    def test_MessageQueue(self):
-        text = 'x'
-        num = 1
-        mq1 = MessageQueue()
-        for value,attrs in [
-            (text, ('Topic','BrokerName')),
-            (num, ('QueueId',)),
-        ]:
-            for attr in attrs:
-                java_get_set_is(mq1, attr, value)
-        num = 2
-        mq2 = MessageQueue(topic=text, brokerName=text, queueId=num)
-        assert(mq1 == mq1)
-        assert(mq1 <= mq1)
-        assert(mq1 >= mq1)
-        assert(mq1 < mq2)
-        assert(mq2 > mq1)
-        assert(mq1 != mq2)
-        print(mq1.__hash__())
-    
-    def test_ClientConfig(self):
-        text = '127.0.0.1'
-        num = 100
-        cc = ClientConfig()
-        for value,attrs in [
-            (text, ('ClientIP','UnitName',)),
-            (num, ('ClientCallbackExecutorThreads','PollNameServerInterval','HeartbeatBrokerInterval','PersistConsumerOffsetInterval',)),
-            (False, ('UnitMode','VipChannelEnabled','UseTLS',)),
-            (f'{text}:{num}', ('NamesrvAddr',)),
-            (LanguageCode.PYTHON, ('Language',)),
-        ]:
-            for attr in attrs:
-                java_get_set_is(cc, attr, value)
-        cc.changeInstanceNameToPID()
-        assert(int(cc.instanceName) == os.getpid())
-        cc.resetClientConfig(cc.cloneClientConfig())
-        print(cc.buildMQClientId())
+from pyrocketmq.common import *
+from pyrocketmq.consumer import *
+from pyrocketmq.producer import *
 
 class TestProducer:
+    def __init__(self, java_test_func:Callable):
+        self.java_test_func = java_test_func
+
     def test_enums(self):
-        print_enums((SendStatus,))
+        print('')
+        for e in (SendStatus,):
+            print(','.join([str(i) for i in e]))
     
     def test_SendResult(self):
         sr = SendResult()
@@ -142,7 +30,7 @@ class TestProducer:
             (MessageQueue(topic=text,brokerName=text,queueId=num), ('MessageQueue',)),
         ]:
             for attr in attrs:
-                java_get_set_is(sr, attr, value)
+                self.java_test_func(sr, attr, value)
 
     def test_Producer(self):
         prd = Producer()
@@ -153,11 +41,16 @@ class TestProducer:
             ([1], ('NotAvailableDuration','LatencyMax'))
         ]:
             for attr in attrs:
-                java_get_set_is(prd, attr, value)
+                self.java_test_func(prd, attr, value)
 
 class TestConsumer:
+    def __init__(self, java_test_func:Callable):
+        self.java_test_func = java_test_func
+
     def test_enums(self):
-        print_enums((PullStatus,ReadOffsetType,ConsumeFromWhere,ConsumeConcurrentlyStatus,ConsumeOrderlyStatus,AllocateMessageQueueStrategyType))
+        print('')
+        for e in (PullStatus,ConsumeFromWhere,ConsumeConcurrentlyStatus,ConsumeOrderlyStatus):
+            print(','.join([str(i) for i in e]))
     
     def test_MessageSelector(self):
         text = 'x=1'
@@ -189,7 +82,7 @@ class TestConsumer:
                 (1, ('MaxReconsumeTimes',))
             ]:
                 for attr in attrs:
-                    java_get_set_is(cs, attr, value)
+                    self.java_test_func(cs, attr, value)
             cs.setAllocateMessageQueueStrategy(cs.allocateMessageQueueStrategy)
             print(cs.offsetStore)
 
@@ -201,7 +94,7 @@ class TestConsumer:
             (1, ('BrokerSuspendMaxTimeMillis','ConsumerPullTimeoutMillis','ConsumerTimeoutMillisWhenSuspend'))
             ]:
                 for attr in attrs:
-                    java_get_set_is(cs, attr, value)
+                    self.java_test_func(cs, attr, value)
     
     def test_PushConsumer(self):
         cs = PushConsumer()
@@ -217,7 +110,7 @@ class TestConsumer:
             )),
             ]:
                 for attr in attrs:
-                    java_get_set_is(cs, attr, value)
+                    self.java_test_func(cs, attr, value)
 
 class TestIntegration:
     BODY = b'{"name":"Alice", "age":1}'
@@ -246,7 +139,7 @@ class TestIntegration:
 
         def _onException(self, e:Throwable):
             e.printStackTrace()
-    
+
     class MyMessageListenerConcurrently(MessageListenerConcurrently):
         def _consumeMessage(self, msgs:List[MessageExt], context:ConsumeConcurrentlyContext) -> ConsumeConcurrentlyStatus:
             print('Concurrently', context.ackIndex)

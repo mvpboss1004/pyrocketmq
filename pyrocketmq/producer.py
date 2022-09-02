@@ -13,7 +13,8 @@ from org.apache.rocketmq.client.producer import SendResult as JSendResult
 from org.apache.rocketmq.client.producer import SendStatus as JSendStatus
 from org.apache.rocketmq.common.message import Message as JMessage
 
-from .common import BaseClient, Throwable, Message, MessageQueue
+from .client import BaseClient
+from .common import Throwable, Message, MessageQueue
 
 class SendStatus(Enum):
     SEND_OK = JSendStatus.SEND_OK
