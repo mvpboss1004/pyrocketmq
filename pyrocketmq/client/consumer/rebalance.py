@@ -34,7 +34,7 @@ class MachineRoomResolver:
         pass
 
     @abstractmethod
-    def consumerDeployIn(self, clientID:str) -> str:
+    def _consumerDeployIn(self, clientID:str) -> str:
         pass
 
 class BaseAllocateMessageQueueStrategy:
