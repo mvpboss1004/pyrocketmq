@@ -3,6 +3,7 @@ from typing import Optional
 
 from java.io import ByteArrayOutputStream, PrintStream
 from java.lang import Throwable as JThrowable
+from org.apache.rocketmq.common.consumer import ConsumeFromWhere as JConsumeFromWhere
 from org.apache.rocketmq.common.filter import ExpressionType as JExpressionType
 from org.apache.rocketmq.common.protocol.heartbeat import MessageModel as JMessageModel
 from org.apache.rocketmq.remoting.protocol import LanguageCode as JLanguageCode
@@ -45,12 +46,6 @@ class LanguageCode(Enum):
     @property
     def code(self) -> int:
         return int(self.value.getCode())
-
-class PullStatus(Enum):
-    FOUND = JPullStatus.FOUND
-    NO_NEW_MSG = JPullStatus.NO_NEW_MSG
-    NO_MATCHED_MSG = JPullStatus.NO_MATCHED_MSG
-    OFFSET_ILLEGAL = JPullStatus.OFFSET_ILLEGAL
 
 class Throwable:
     def __init__(self, throwable:Optional[JThrowable]=None, message:Optional[str]=None, cause=None):
