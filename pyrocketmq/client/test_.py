@@ -1,7 +1,9 @@
 import os
+import pytest
 from .client import *
 
-@pytest.fixture
+java_test_func = get_java_test_func()
+
 class TestClient:
     def test_QueryResult(self):
         num = 1000

@@ -5,6 +5,8 @@ import pytest
 from .common import *
 from .message import *
 
+java_test_func = get_java_test_func()
+
 class TestCommon:
     def test_enums(self):
         print('')
@@ -20,7 +22,6 @@ class TestCommon:
         e = Throwable(message='world', cause=e)
         print(e.printStackTrace())
 
-@pytest.fixture
 class TestMessage:
     def test_socket2tuple(self):
         ip = '127.0.0.1'

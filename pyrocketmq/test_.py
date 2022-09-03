@@ -6,7 +6,8 @@ import pytest
 from .common import *
 from .client import *
 
-@pytest.fixture
+java_test_func = get_java_test_func()
+
 class TestProducer:
     def test_enums(self):
         print('')
@@ -41,7 +42,6 @@ class TestProducer:
             for attr in attrs:
                 java_test_func(prd, attr, value)
 
-@pytest.fixture
 class TestConsumer:
     def test_enums(self):
         print('')
