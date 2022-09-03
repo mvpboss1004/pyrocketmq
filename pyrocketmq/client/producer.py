@@ -4,7 +4,7 @@ from enum import Enum
 from os.path import dirname
 from typing import Any, List, Optional, Union
 
-sys.append(dirname(dirname(__file__)))
+sys.path.append(dirname(dirname(__file__)))
 
 from jpype import JImplements, JOverride
 from java.lang import Object as JObject
