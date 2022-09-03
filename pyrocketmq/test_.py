@@ -2,12 +2,11 @@ import json
 from time import sleep
 from typing import Callable
 
-from pyrocketmq.common import *
-from pyrocketmq.consumer import *
-from pyrocketmq.producer import *
+from .common import *
+from .client import *
 
 class TestProducer:
-    def __init__(self, java_test_func:Callable):
+    def setup_class(self, java_test_func:Callable):
         self.java_test_func = java_test_func
 
     def test_enums(self):
@@ -44,7 +43,7 @@ class TestProducer:
                 self.java_test_func(prd, attr, value)
 
 class TestConsumer:
-    def __init__(self, java_test_func:Callable):
+    def setup_class(self, java_test_func:Callable):
         self.java_test_func = java_test_func
 
     def test_enums(self):

@@ -3,7 +3,7 @@ from typing import Callable
 from .client import *
 
 class TestClient:
-    def __init__(self, java_test_func:Callable):
+    def setup_class(self, java_test_func:Callable):
         self.java_test_func = java_test_func
         
     def test_QueryResult(self):
