@@ -20,8 +20,8 @@ from org.apache.rocketmq.client.consumer import PullStatus as JPullStatus
 
 from common import ConsumeFromWhere, ExpressionType, MessageExt, MessageQueue, Throwable
 from client import BaseClient
-from .consumer import AllocateMessageQueueStrategy
 from .listener import MessageListenerConcurrently, MessageListenerOrderly
+from .rebalance import BaseAllocateMessageQueueStrategy
 from .store import MessageModel, OffsetStore
 
 class PullStatus(Enum):
@@ -110,13 +110,33 @@ class PullCallback:
     def _onException(self, e:Throwable):
         pass
 
+@JImplements(JAllocateMessageQueueStrategy)
+class AllocateMessageQueueStrategy:
+    @JOverride
+    def allocate(self, consumerGroup:str, currentCID:str, mqAll:JList, cidAll:JList):
+        return [mq.this for mq in 
+            self._allocate(str(consumerGroup), str(currentCID), [mq.this for mq in mqAll], [str(cid) for cid in cidAll])
+        ]
+
+    @JOverride
+    def getName(self):
+        return self._getName()
+
+    @abstractmethod
+    def _allocate(self, consumerGroup:str, currentCID:str, mqAll:List[MessageQueue], cidAll:List[str]) -> List[MessageQueue]:
+        pass
+    
+    @abstractmethod
+    def _getName(self) -> str:
+        pass
+
 class BaseConsumer(BaseClient):
     @property
-    def allocateMessageQueueStrategy(self) -> AllocateMessageQueueStrategy:
-        return AllocateMessageQueueStrategy(self.this.getAllocateMessageQueueStrategy()) 
+    def allocateMessageQueueStrategy(self) -> BaseAllocateMessageQueueStrategy:
+        return BaseAllocateMessageQueueStrategy(self.this.getAllocateMessageQueueStrategy()) 
     
-    def setAllocateMessageQueueStrategy(self, allocateMessageQueueStrategy:AllocateMessageQueueStrategy):
-        self.this.setAllocateMessageQueueStrategy(allocateMessageQueueStrategy.this)
+    def setAllocateMessageQueueStrategy(self, allocateMessageQueueStrategy:BaseAllocateMessageQueueStrategy):
+        self.this.setAllocateMessageQueueStrategy(BaseAllocateMessageQueueStrategy.this)
     
     @property
     def consumerGroup(self) -> str:
@@ -373,23 +393,3 @@ class PushConsumer(BaseConsumer):
 
     def setConsumeTimeout(self, consumeTimeout:int):
         self.this.setConsumeTimeout(consumeTimeout)
-
-@JImplements(JAllocateMessageQueueStrategy)
-class AllocateMessageQueueStrategy:
-    @JOverride
-    def allocate(self, consumerGroup:str, currentCID:str, mqAll:JList, cidAll:JList):
-        return [mq.this for mq in 
-            self._allocate(str(consumerGroup), str(currentCID), [mq.this for mq in mqAll], [str(cid) for cid in cidAll])
-        ]
-
-    @JOverride
-    def getName(self):
-        return self._getName()
-
-    @abstractmethod
-    def _allocate(self, consumerGroup:str, currentCID:str, mqAll:List[MessageQueue], cidAll:List[str]) -> List[MessageQueue]:
-        pass
-    
-    @abstractmethod
-    def _getName(self) -> str:
-        pass
