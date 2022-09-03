@@ -1,5 +1,6 @@
 from murmurhash.mrmr import hash
 
+from .store import *
 from .listener import *
 from .rebalance import *
 
@@ -49,3 +50,9 @@ class TestRebalance:
             allocate_message_queue_strategy = stg, 
             machine_room_resolver = TestRebalance.MyMachineRoomResolver())
         assert(stg.allocate(text, cidAll[0], mqAll, cidAll)[0].queueId == 1)
+
+class TestStore:
+    def test_enums(self):
+        print('')
+        for e in (OffsetStoreMap, ReadOffsetType):
+            print(','.join([str(i) for i in e]))

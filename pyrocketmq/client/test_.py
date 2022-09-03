@@ -1,7 +1,6 @@
 import os
 from typing import Callable
 from .client import *
-from .store import *
 
 class TestClient:
     def __init__(self, java_test_func:Callable):
@@ -30,9 +29,3 @@ class TestClient:
         assert(int(cc.instanceName) == os.getpid())
         cc.resetClientConfig(cc.cloneClientConfig())
         print(cc.buildMQClientId())
-
-class TestStore:
-    def test_enums(self):
-        print('')
-        for e in (OffsetStoreMap, ReadOffsetType):
-            print(','.join([str(i) for i in e]))

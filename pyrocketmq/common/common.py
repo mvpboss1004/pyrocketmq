@@ -7,6 +7,11 @@ from org.apache.rocketmq.common.filter import ExpressionType as JExpressionType
 from org.apache.rocketmq.common.protocol.heartbeat import MessageModel as JMessageModel
 from org.apache.rocketmq.remoting.protocol import LanguageCode as JLanguageCode
 
+class ConsumeFromWhere(Enum):
+    CONSUME_FROM_LAST_OFFSET = JConsumeFromWhere.CONSUME_FROM_LAST_OFFSET
+    CONSUME_FROM_FIRST_OFFSET = JConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET
+    CONSUME_FROM_TIMESTAMP = JConsumeFromWhere.CONSUME_FROM_TIMESTAMP
+
 class ExpressionType(Enum):
     SQL92 = str(JExpressionType.SQL92)
     TAG = str(JExpressionType.TAG)
@@ -40,6 +45,12 @@ class LanguageCode(Enum):
     @property
     def code(self) -> int:
         return int(self.value.getCode())
+
+class PullStatus(Enum):
+    FOUND = JPullStatus.FOUND
+    NO_NEW_MSG = JPullStatus.NO_NEW_MSG
+    NO_MATCHED_MSG = JPullStatus.NO_MATCHED_MSG
+    OFFSET_ILLEGAL = JPullStatus.OFFSET_ILLEGAL
 
 class Throwable:
     def __init__(self, throwable:Optional[JThrowable]=None, message:Optional[str]=None, cause=None):

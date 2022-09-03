@@ -17,23 +17,18 @@ from org.apache.rocketmq.client.consumer import MessageSelector as JMessageSelec
 from org.apache.rocketmq.client.consumer import PullCallback as JPullCallback
 from org.apache.rocketmq.client.consumer import PullResult as JPullResult
 from org.apache.rocketmq.client.consumer import PullStatus as JPullStatus
-from org.apache.rocketmq.common.consumer import ConsumeFromWhere as JConsumeFromWhere
 
-from common import BaseClient, ExpressionType, MessageExt, MessageModel, MessageQueue, Throwable
-from client import OffsetStore
+from common import ConsumeFromWhere, ExpressionType, MessageExt, MessageQueue, Throwable
+from client import BaseClient
+from .consumer import AllocateMessageQueueStrategy
 from .listener import MessageListenerConcurrently, MessageListenerOrderly
-
+from .store import MessageModel, OffsetStore
 
 class PullStatus(Enum):
     FOUND = JPullStatus.FOUND
     NO_NEW_MSG = JPullStatus.NO_NEW_MSG
     NO_MATCHED_MSG = JPullStatus.NO_MATCHED_MSG
     OFFSET_ILLEGAL = JPullStatus.OFFSET_ILLEGAL
-
-class ConsumeFromWhere(Enum):
-    CONSUME_FROM_LAST_OFFSET = JConsumeFromWhere.CONSUME_FROM_LAST_OFFSET
-    CONSUME_FROM_FIRST_OFFSET = JConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET
-    CONSUME_FROM_TIMESTAMP = JConsumeFromWhere.CONSUME_FROM_TIMESTAMP
 
 class MessageQueueListener:
     def __init__(self, message_queue_listener:JMessageQueueListener):
@@ -96,26 +91,6 @@ class PullResult(list):
     @property
     def maxOffset(self) -> int:
         return int(self.this.getMaxOffset())
-
-@JImplements(JAllocateMessageQueueStrategy)
-class AllocateMessageQueueStrategy:
-    @JOverride
-    def allocate(self, consumerGroup:str, currentCID:str, mqAll:JList, cidAll:JList):
-        return [mq.this for mq in 
-            self._allocate(str(consumerGroup), str(currentCID), [mq.this for mq in mqAll], [str(cid) for cid in cidAll])
-        ]
-
-    @JOverride
-    def getName(self):
-        return self._getName()
-
-    @abstractmethod
-    def _allocate(self, consumerGroup:str, currentCID:str, mqAll:List[MessageQueue], cidAll:List[str]) -> List[MessageQueue]:
-        pass
-    
-    @abstractmethod
-    def _getName(self) -> str:
-        pass
 
 @JImplements(JPullCallback)
 class PullCallback:
@@ -398,3 +373,23 @@ class PushConsumer(BaseConsumer):
 
     def setConsumeTimeout(self, consumeTimeout:int):
         self.this.setConsumeTimeout(consumeTimeout)
+
+@JImplements(JAllocateMessageQueueStrategy)
+class AllocateMessageQueueStrategy:
+    @JOverride
+    def allocate(self, consumerGroup:str, currentCID:str, mqAll:JList, cidAll:JList):
+        return [mq.this for mq in 
+            self._allocate(str(consumerGroup), str(currentCID), [mq.this for mq in mqAll], [str(cid) for cid in cidAll])
+        ]
+
+    @JOverride
+    def getName(self):
+        return self._getName()
+
+    @abstractmethod
+    def _allocate(self, consumerGroup:str, currentCID:str, mqAll:List[MessageQueue], cidAll:List[str]) -> List[MessageQueue]:
+        pass
+    
+    @abstractmethod
+    def _getName(self) -> str:
+        pass

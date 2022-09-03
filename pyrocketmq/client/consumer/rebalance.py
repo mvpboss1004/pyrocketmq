@@ -3,31 +3,21 @@ from abc import abstractmethod
 from os.path import dirname
 from typing import List, Optional
 
-sys.path.append(dirname(dirname(__file__)))
+sys.path.append(dirname(dirname(dirname(__file__))))
 
 from jpype import JImplements, JOverride
 from org.apache.rocketmq.client.consumer import AllocateMessageQueueStrategy as JAllocateMessageQueueStrategy
 from org.apache.rocketmq.client.consumer.rebalance import AllocateMachineRoomNearby as JAllocateMachineRoomNearby
 from org.apache.rocketmq.client.consumer.rebalance import AllocateMessageQueueAveragely as JAllocateMessageQueueAveragely
-from org.apache.rocketmq.client.consumer.rebalance import AllocateMessageQueueAveragelyByCircle as  JAllocateMessageQueueAveragelyByCircle
+from org.apache.rocketmq.client.consumer.rebalance import AllocateMessageQueueAveragelyByCircle as JAllocateMessageQueueAveragelyByCircle
 from org.apache.rocketmq.client.consumer.rebalance import AllocateMessageQueueByConfig as JAllocateMessageQueueByConfig
 from org.apache.rocketmq.client.consumer.rebalance import AllocateMessageQueueByMachineRoom as JAllocateMessageQueueByMachineRoom
 from org.apache.rocketmq.client.consumer.rebalance import AllocateMessageQueueConsistentHash as JAllocateMessageQueueConsistentHash
-from org.apache.rocketmq.client.consumer.rebalance import MachineRoomResolver as JMachineRoomResolver
+from org.apache.rocketmq.client.consumer.rebalance.AllocateMachineRoomNearby import MachineRoomResolver as JMachineRoomResolver
 from org.apache.rocketmq.common.consistenthash import HashFunction as JHashFunction
 
 from common import MessageQueue
 
-
-@JImplements(JHashFunction)
-class HashFunction:
-    @JOverride
-    def hash(self, key):
-        return self._hash(key)
-
-    @abstractmethod
-    def _hash(self, key:str) -> int:
-        pass
 
 @JImplements(JMachineRoomResolver)
 class MachineRoomResolver:
@@ -112,3 +102,13 @@ class AllocateMessageQueueConsistentHash(BaseAllocateMessageQueueStrategy):
             self.this = allocate_message_queue_strategy
         else:
             self.this = JAllocateMessageQueueConsistentHash(virtualNodecnt, customHashFunction)
+
+@JImplements(JHashFunction)
+class HashFunction:
+    @JOverride
+    def hash(self, key):
+        return self._hash(key)
+
+    @abstractmethod
+    def _hash(self, key:str) -> int:
+        pass
