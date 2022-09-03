@@ -1,6 +1,7 @@
 import os
 
-from .client import *
+from pyrocketmq import *
+from .conftest import java_get_set_is
 
 class TestClient:
     def test_QueryResult(self):
@@ -21,7 +22,7 @@ class TestClient:
             (LanguageCode.PYTHON, ('Language',)),
         ]:
             for attr in attrs:
-                java_test_func(cc, attr, value)
+                java_get_set_is(cc, attr, value)
         cc.changeInstanceNameToPID()
         assert(int(cc.instanceName) == os.getpid())
         cc.resetClientConfig(cc.cloneClientConfig())

@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=50.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyrocketmq"
+version = "0.2.0"
+authors = [
+  { name="mvpboss1004", email="mvpboss1004@126.com" },
+]
+description = "A Python RocketMQ 4.0+ API based on JPype"
+readme = "README.rst"
+license = { file="LICENSE" }
+requires-python = ">=3.6"
+classifiers=[
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: Implementation",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Software Development :: Libraries"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/mvpboss1004/pyrocketmq"
+"Bug Tracker" = "https://github.com/mvpboss1004/pyrocketmq/issues"
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+    "-vs",
+    "-vv",
+]

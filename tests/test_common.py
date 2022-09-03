@@ -2,8 +2,8 @@ from datetime import datetime
 
 from java.lang import Exception as JException
 
-from .common import *
-from .message import *
+from pyrocketmq import *
+from .conftest import java_get_set_is
 
 
 class TestCommon:
@@ -40,7 +40,7 @@ class TestMessage:
             (text.encode(), ('Body',)),
         ]:
             for attr in attrs:
-                java_test_func(msg, attr, value)
+                java_get_set_is(msg, attr, value)
         msg.putUserProperty(text, text)
         assert(msg.properties == {
             'BUYER_ID':text, 'KEYS':text, text:text, 'TAGS':text, 'DELAY':str(num), 'WAIT':str(bl).lower()
@@ -65,7 +65,7 @@ class TestMessage:
             (addr, ('BornHost','StoreHost'))
         ]:
             for attr in attrs:
-                java_test_func(msg, attr, value)
+                java_get_set_is(msg, attr, value)
         assert(msg.bornHostString == text)
         assert(msg.bornHostNameString == 'localhost')
     
@@ -78,7 +78,7 @@ class TestMessage:
             (num, ('QueueId',)),
         ]:
             for attr in attrs:
-                java_test_func(mq1, attr, value)
+                java_get_set_is(mq1, attr, value)
         num = 2
         mq2 = MessageQueue(topic=text, brokerName=text, queueId=num)
         assert(mq1 == mq1)

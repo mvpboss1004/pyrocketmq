@@ -79,7 +79,7 @@ class AllocateMessageQueueByConfig(BaseAllocateMessageQueueStrategy):
         return [MessageQueue(mq) for mq in self.this.getMessageQueueList()]
     
     def setMessageQueueList(self, messageQueueList:List[MessageQueue]):
-        self.this.setMessageQueueList([mq.this for mq in messageQueueList])
+        self.this.setMessageQueueList(ArrayList([mq.this for mq in messageQueueList]))
 
 class AllocateMessageQueueByMachineRoom(BaseAllocateMessageQueueStrategy):
     def __init__(self, allocate_message_queue_strategy:Optional[JAllocateMessageQueueStrategy]=None):
@@ -90,7 +90,7 @@ class AllocateMessageQueueByMachineRoom(BaseAllocateMessageQueueStrategy):
         return [str(idc) for idc in self.this.getConsumeridcs()]
     
     def setConsumeridcs(self, consumeridcs:List[str]):
-        self.this.setConsumeridcs(consumeridcs)
+        self.this.setConsumeridcs(ArrayList(consumeridcs))
 
 class AllocateMessageQueueConsistentHash(BaseAllocateMessageQueueStrategy):
     def __init__(self,
