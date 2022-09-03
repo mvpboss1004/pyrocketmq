@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from java.lang import Exception as JException
+
 from .common import *
 from .message import *
 
@@ -13,10 +15,11 @@ class TestCommon:
             assert(lc == LanguageCode.valueOf(code))
 
     def test_Throwable(self):
-        msg = 'hello'
-        e = Throwable(msg)
+        msg = 'are'
+        e = Throwable(JException(msg))
         assert(e.message==msg)
-        e = Throwable(message='world', cause=e)
+        e = Throwable(message='you', cause=Throwable(message=msg))
+        e = Throwable(cause=e)
         print(e.printStackTrace())
 
 class TestMessage:
