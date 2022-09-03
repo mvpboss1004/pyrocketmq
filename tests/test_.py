@@ -3,7 +3,7 @@ from time import sleep
 
 from pyrocketmq import *
 from pyrocketmq import *
-from .conftest import java_get_set_is
+from .helpers import java_get_set_is
 
 class TestProducer:
     def test_enums(self):

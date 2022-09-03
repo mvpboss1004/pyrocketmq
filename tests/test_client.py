@@ -1,7 +1,7 @@
 import os
 
 from pyrocketmq import *
-from .conftest import java_get_set_is
+from .helpers import java_get_set_is
 
 class TestClient:
     def test_QueryResult(self):
