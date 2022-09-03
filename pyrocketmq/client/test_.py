@@ -1,11 +1,8 @@
 import os
-from typing import Callable
 from .client import *
 
+@pytest.fixture
 class TestClient:
-    def setup_class(self, java_test_func:Callable):
-        self.java_test_func = java_test_func
-        
     def test_QueryResult(self):
         num = 1000
         result = QueryResult(indexLastUpdateTimestamp=num, messageList=[MessageExt()])
@@ -24,7 +21,7 @@ class TestClient:
             (LanguageCode.PYTHON, ('Language',)),
         ]:
             for attr in attrs:
-                self.java_test_func(cc, attr, value)
+                java_test_func(cc, attr, value)
         cc.changeInstanceNameToPID()
         assert(int(cc.instanceName) == os.getpid())
         cc.resetClientConfig(cc.cloneClientConfig())
