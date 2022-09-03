@@ -6,6 +6,7 @@ from typing import List, Optional
 sys.path.append(dirname(dirname(dirname(__file__))))
 
 from jpype import JImplements, JOverride
+from java.util import ArrayList
 from org.apache.rocketmq.client.consumer import AllocateMessageQueueStrategy as JAllocateMessageQueueStrategy
 from org.apache.rocketmq.client.consumer.rebalance import AllocateMachineRoomNearby as JAllocateMachineRoomNearby
 from org.apache.rocketmq.client.consumer.rebalance import AllocateMessageQueueAveragely as JAllocateMessageQueueAveragely
@@ -42,7 +43,7 @@ class BaseAllocateMessageQueueStrategy:
         self.this = AllocateMessageQueueStrategyClass() if allocate_message_queue_strategy is None else allocate_message_queue_strategy
     
     def allocate(self, consumerGroup:str, currentCID:str, mqAll:List[MessageQueue], cidAll:List[str]) -> List[MessageQueue]:
-        return [MessageQueue(mq) for mq in self.this.allocate(consumerGroup, currentCID, [mq.this for mq in mqAll], cidAll)]
+        return [MessageQueue(mq) for mq in self.this.allocate(consumerGroup, currentCID, ArrayList([mq.this for mq in mqAll]), ArrayList(cidAll))]
 
     @property
     def name(self) -> str:
