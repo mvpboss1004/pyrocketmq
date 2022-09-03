@@ -26,5 +26,5 @@ def java_get_set_is(obj:Any, attr:str, value:Any):
         assert(getattr(obj, attr[0].lower()+attr[1:]) == value)
 
 @pytest.fixture
-def get_java_test_func() -> Callable:
+def java_test_func() -> Callable:
     return java_get_set_is

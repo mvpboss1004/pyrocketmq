@@ -1,11 +1,10 @@
 from datetime import datetime
-
+from typing import Callable
 import pytest
 
 from .common import *
 from .message import *
 
-java_test_func = get_java_test_func()
 
 class TestCommon:
     def test_enums(self):
@@ -23,6 +22,10 @@ class TestCommon:
         print(e.printStackTrace())
 
 class TestMessage:
+    @pytest.fixture
+    def setup_class(self, java_test_func:Callable):
+        self.java_test_func = java_test_func
+
     def test_socket2tuple(self):
         ip = '127.0.0.1'
         port = 9876
@@ -40,7 +43,7 @@ class TestMessage:
             (text.encode(), ('Body',)),
         ]:
             for attr in attrs:
-                java_test_func(msg, attr, value)
+                self.java_test_func(msg, attr, value)
         msg.putUserProperty(text, text)
         assert(msg.properties == {
             'BUYER_ID':text, 'KEYS':text, text:text, 'TAGS':text, 'DELAY':str(num), 'WAIT':str(bl).lower()
@@ -65,7 +68,7 @@ class TestMessage:
             (addr, ('BornHost','StoreHost'))
         ]:
             for attr in attrs:
-                java_test_func(msg, attr, value)
+                self.java_test_func(msg, attr, value)
         assert(msg.bornHostString == text)
         assert(msg.bornHostNameString == 'localhost')
     
@@ -78,7 +81,7 @@ class TestMessage:
             (num, ('QueueId',)),
         ]:
             for attr in attrs:
-                java_test_func(mq1, attr, value)
+                self.java_test_func(mq1, attr, value)
         num = 2
         mq2 = MessageQueue(topic=text, brokerName=text, queueId=num)
         assert(mq1 == mq1)

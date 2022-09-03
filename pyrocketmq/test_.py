@@ -1,14 +1,18 @@
 import json
 from time import sleep
+from typing import Callable
 
 import pytest
 
 from .common import *
 from .client import *
 
-java_test_func = get_java_test_func()
 
 class TestProducer:
+    @pytest.fixture
+    def setup_class(self, java_test_func:Callable):
+        self.java_test_func = java_test_func
+
     def test_enums(self):
         print('')
         for e in (SendStatus,):
@@ -29,7 +33,7 @@ class TestProducer:
             (MessageQueue(topic=text,brokerName=text,queueId=num), ('MessageQueue',)),
         ]:
             for attr in attrs:
-                java_test_func(sr, attr, value)
+                self.java_test_func(sr, attr, value)
 
     def test_Producer(self):
         prd = Producer()
@@ -40,7 +44,7 @@ class TestProducer:
             ([1], ('NotAvailableDuration','LatencyMax'))
         ]:
             for attr in attrs:
-                java_test_func(prd, attr, value)
+                self.java_test_func(prd, attr, value)
 
 class TestConsumer:
     def test_enums(self):
@@ -78,7 +82,7 @@ class TestConsumer:
                 (1, ('MaxReconsumeTimes',))
             ]:
                 for attr in attrs:
-                    java_test_func(cs, attr, value)
+                    self.java_test_func(cs, attr, value)
             cs.setAllocateMessageQueueStrategy(cs.allocateMessageQueueStrategy)
             print(cs.offsetStore)
 
@@ -90,7 +94,7 @@ class TestConsumer:
             (1, ('BrokerSuspendMaxTimeMillis','ConsumerPullTimeoutMillis','ConsumerTimeoutMillisWhenSuspend'))
             ]:
                 for attr in attrs:
-                    java_test_func(cs, attr, value)
+                    self.java_test_func(cs, attr, value)
     
     def test_PushConsumer(self):
         cs = PushConsumer()
@@ -106,7 +110,7 @@ class TestConsumer:
             )),
             ]:
                 for attr in attrs:
-                    java_test_func(cs, attr, value)
+                    self.java_test_func(cs, attr, value)
 
 class TestIntegration:
     BODY = b'{"name":"Alice", "age":1}'
