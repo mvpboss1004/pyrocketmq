@@ -1,16 +1,13 @@
-import sys
 from enum import Enum
 from typing import Dict, List
-
-sys.path.append('../../../')
 
 from org.apache.rocketmq.client.consumer.store import LocalFileOffsetStore as JLocalFileOffsetStore
 from org.apache.rocketmq.client.consumer.store import OffsetStore as JOffsetStore
 from org.apache.rocketmq.client.consumer.store import ReadOffsetType as JReadOffsetType
 from org.apache.rocketmq.client.consumer.store import RemoteBrokerOffsetStore as JRemoteBrokerOffsetStore
 
-from common.common import MessageModel
-from common.message import MessageQueue
+from ...common.common import MessageModel
+from ...common.message import MessageQueue
 
 class ReadOffsetType(Enum):
     READ_FROM_MEMORY = JReadOffsetType.READ_FROM_MEMORY

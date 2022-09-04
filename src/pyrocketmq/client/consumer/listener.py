@@ -16,7 +16,6 @@ from org.apache.rocketmq.client.consumer.listener import MessageListenerOrderly 
 
 from common.message import MessageExt, MessageQueue
 
-
 class ConsumeConcurrentlyStatus(Enum):
     CONSUME_SUCCESS = JConsumeConcurrentlyStatus.CONSUME_SUCCESS
     RECONSUME_LATER = JConsumeConcurrentlyStatus.RECONSUME_LATER

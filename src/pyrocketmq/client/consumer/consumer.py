@@ -1,9 +1,6 @@
-import sys
 from abc import abstractmethod
 from enum import Enum
 from typing import Dict, List, Optional, Union
-
-sys.path.append('../../../')
 
 from jpype import JImplements, JOverride
 from java.lang import Throwable as JThrowable
@@ -17,9 +14,9 @@ from org.apache.rocketmq.client.consumer import PullCallback as JPullCallback
 from org.apache.rocketmq.client.consumer import PullResult as JPullResult
 from org.apache.rocketmq.client.consumer import PullStatus as JPullStatus
 
-from common.common import ConsumeFromWhere, ExpressionType, MessageModel, Throwable
-from common.message import MessageExt, MessageQueue
-from client.client import BaseClient
+from ...common.common import ConsumeFromWhere, ExpressionType, MessageModel, Throwable
+from ...common.message import MessageExt, MessageQueue
+from ..client import BaseClient
 from .listener import MessageListenerConcurrently, MessageListenerOrderly
 from .rebalance import BaseAllocateMessageQueueStrategy
 from .store import OffsetStore

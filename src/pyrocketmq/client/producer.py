@@ -1,9 +1,6 @@
-import sys
 from abc import abstractmethod
 from enum import Enum
 from typing import Any, List, Optional, Union
-
-sys.path.append('../../')
 
 from jpype import JImplements, JOverride
 from java.lang import Object as JObject
@@ -16,9 +13,9 @@ from org.apache.rocketmq.client.producer import SendResult as JSendResult
 from org.apache.rocketmq.client.producer import SendStatus as JSendStatus
 from org.apache.rocketmq.common.message import Message as JMessage
 
+from ..common.common import Throwable
+from ..common.message import Message, MessageQueue
 from .client import BaseClient
-from common.common import Throwable
-from common.message import Message, MessageQueue
 
 class SendStatus(Enum):
     SEND_OK = JSendStatus.SEND_OK

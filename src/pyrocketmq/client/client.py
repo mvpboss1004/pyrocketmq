@@ -1,14 +1,11 @@
-import sys
 from typing import List, Optional, Union
-
-sys.path.append('../../')
 
 from java.util import ArrayList
 from org.apache.rocketmq.client import ClientConfig as JClientConfig
 from org.apache.rocketmq.client import QueryResult as JQueryResult
 
-from common.common import LanguageCode
-from common.message import MessageExt, MessageQueue
+from ..common.common import LanguageCode
+from ..common.message import MessageExt, MessageQueue
 
 class QueryResult(list):
     def __init__(self,
