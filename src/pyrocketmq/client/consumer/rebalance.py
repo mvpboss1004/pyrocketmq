@@ -2,7 +2,7 @@ from abc import abstractmethod
 from typing import List, Optional
 
 from jpype import JImplements, JOverride
-from java.util import ArrayList
+from java.util import ArrayList, HashSet
 from org.apache.rocketmq.client.consumer import AllocateMessageQueueStrategy as JAllocateMessageQueueStrategy
 from org.apache.rocketmq.client.consumer.rebalance import AllocateMachineRoomNearby as JAllocateMachineRoomNearby
 from org.apache.rocketmq.client.consumer.rebalance import AllocateMessageQueueAveragely as JAllocateMessageQueueAveragely
@@ -14,6 +14,7 @@ from org.apache.rocketmq.client.consumer.rebalance.AllocateMachineRoomNearby imp
 from org.apache.rocketmq.common.consistenthash import HashFunction as JHashFunction
 
 from ...common.message import MessageQueue
+
 
 @JImplements(JMachineRoomResolver)
 class MachineRoomResolver:
@@ -34,8 +35,16 @@ class MachineRoomResolver:
         pass
 
 class BaseAllocateMessageQueueStrategy:
-    def __init__(self, AllocateMessageQueueStrategyClass, allocate_message_queue_strategy:Optional[JAllocateMessageQueueStrategy]=None):
-        self.this = AllocateMessageQueueStrategyClass() if allocate_message_queue_strategy is None else allocate_message_queue_strategy
+    def __init__(self,
+        allocate_message_queue_strategy:Optional[JAllocateMessageQueueStrategy] = None,
+        AllocateMessageQueueStrategyClass:Optional[type] = None,
+    ):
+        if AllocateMessageQueueStrategyClass is None and allocate_message_queue_strategy is None:
+            raise Exception('At least one of AllocateMessageQueueStrategyClass or allocate_message_queue_strategy must be specified.')
+        elif allocate_message_queue_strategy is not None:
+            self.this = allocate_message_queue_strategy
+        else:
+            self.this = AllocateMessageQueueStrategyClass()
     
     def allocate(self, consumerGroup:str, currentCID:str, mqAll:List[MessageQueue], cidAll:List[str]) -> List[MessageQueue]:
         return [MessageQueue(mq) for mq in self.this.allocate(consumerGroup, currentCID, ArrayList([mq.this for mq in mqAll]), ArrayList(cidAll))]
@@ -59,15 +68,15 @@ class AllocateMachineRoomNearby(BaseAllocateMessageQueueStrategy):
 
 class AllocateMessageQueueAveragely(BaseAllocateMessageQueueStrategy):
     def __init__(self, allocate_message_queue_strategy:Optional[JAllocateMessageQueueStrategy]=None):
-        BaseAllocateMessageQueueStrategy.__init__(self, JAllocateMessageQueueAveragely, allocate_message_queue_strategy)
+        BaseAllocateMessageQueueStrategy.__init__(self, allocate_message_queue_strategy, JAllocateMessageQueueAveragely)
 
 class AllocateMessageQueueAveragelyByCircle(BaseAllocateMessageQueueStrategy):
     def __init__(self, allocate_message_queue_strategy:Optional[JAllocateMessageQueueStrategy]=None):
-        BaseAllocateMessageQueueStrategy.__init__(self, JAllocateMessageQueueAveragelyByCircle, allocate_message_queue_strategy)
+        BaseAllocateMessageQueueStrategy.__init__(self, allocate_message_queue_strategy, JAllocateMessageQueueAveragelyByCircle)
 
 class AllocateMessageQueueByConfig(BaseAllocateMessageQueueStrategy):
     def __init__(self, allocate_message_queue_strategy:Optional[JAllocateMessageQueueStrategy]=None):
-        BaseAllocateMessageQueueStrategy.__init__(self, JAllocateMessageQueueByConfig, allocate_message_queue_strategy)
+        BaseAllocateMessageQueueStrategy.__init__(self, allocate_message_queue_strategy, JAllocateMessageQueueByConfig)
     
     @property
     def messageQueueList(self) -> List[MessageQueue]:
@@ -78,14 +87,14 @@ class AllocateMessageQueueByConfig(BaseAllocateMessageQueueStrategy):
 
 class AllocateMessageQueueByMachineRoom(BaseAllocateMessageQueueStrategy):
     def __init__(self, allocate_message_queue_strategy:Optional[JAllocateMessageQueueStrategy]=None):
-        BaseAllocateMessageQueueStrategy.__init__(self, JAllocateMessageQueueByMachineRoom, allocate_message_queue_strategy)
+        BaseAllocateMessageQueueStrategy.__init__(self, allocate_message_queue_strategy, JAllocateMessageQueueByMachineRoom)
     
     @property
     def consumeridcs(self) -> List[str]:
         return [str(idc) for idc in self.this.getConsumeridcs()]
     
     def setConsumeridcs(self, consumeridcs:List[str]):
-        self.this.setConsumeridcs(ArrayList(consumeridcs))
+        self.this.setConsumeridcs(HashSet(consumeridcs))
 
 class AllocateMessageQueueConsistentHash(BaseAllocateMessageQueueStrategy):
     def __init__(self,
@@ -98,6 +107,15 @@ class AllocateMessageQueueConsistentHash(BaseAllocateMessageQueueStrategy):
             self.this = allocate_message_queue_strategy
         else:
             self.this = JAllocateMessageQueueConsistentHash(virtualNodecnt, customHashFunction)
+
+AllocateMessageQueueStrategyMap = {
+    JAllocateMachineRoomNearby: AllocateMachineRoomNearby,
+    JAllocateMessageQueueAveragely: AllocateMessageQueueAveragely,
+    JAllocateMessageQueueAveragelyByCircle: AllocateMessageQueueAveragelyByCircle,
+    JAllocateMessageQueueByConfig: AllocateMessageQueueByConfig,
+    JAllocateMessageQueueByMachineRoom: AllocateMessageQueueByMachineRoom,
+    JAllocateMessageQueueConsistentHash: AllocateMessageQueueConsistentHash,
+}
 
 @JImplements(JHashFunction)
 class HashFunction:

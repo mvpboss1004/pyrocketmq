@@ -18,7 +18,7 @@ from ...common.common import ConsumeFromWhere, ExpressionType, MessageModel, Thr
 from ...common.message import MessageExt, MessageQueue
 from ..client import BaseClient
 from .listener import MessageListenerConcurrently, MessageListenerOrderly
-from .rebalance import BaseAllocateMessageQueueStrategy
+from .rebalance import AllocateMessageQueueStrategyMap, BaseAllocateMessageQueueStrategy
 from .store import OffsetStore
 
 class PullStatus(Enum):
@@ -130,8 +130,11 @@ class AllocateMessageQueueStrategy:
 class BaseConsumer(BaseClient):
     @property
     def allocateMessageQueueStrategy(self) -> BaseAllocateMessageQueueStrategy:
-        return BaseAllocateMessageQueueStrategy(self.this.getAllocateMessageQueueStrategy()) 
-    
+        allocate_message_queue_strategy = self.this.getAllocateMessageQueueStrategy()
+        return AllocateMessageQueueStrategyMap\
+            .get(type(allocate_message_queue_strategy), BaseAllocateMessageQueueStrategy)\
+            (allocate_message_queue_strategy)
+        
     def setAllocateMessageQueueStrategy(self, allocateMessageQueueStrategy:BaseAllocateMessageQueueStrategy):
         self.this.setAllocateMessageQueueStrategy(BaseAllocateMessageQueueStrategy.this)
     
