@@ -1,8 +1,7 @@
 import sys
-from pathlib import Path
 from typing import List, Optional, Union
 
-sys.path.append(Path(__file__).resolve().parent.parent)
+sys.path.append('../../')
 
 from java.util import ArrayList
 from org.apache.rocketmq.client import ClientConfig as JClientConfig

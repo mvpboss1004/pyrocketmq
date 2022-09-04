@@ -1,10 +1,9 @@
 import sys
 from abc import abstractmethod
 from enum import Enum
-from pathlib import Path
 from typing import Any, List, Optional, Union
 
-sys.path.append(Path(__file__).resolve().parent.parent)
+sys.path.append('../../')
 
 from jpype import JImplements, JOverride
 from java.lang import Object as JObject

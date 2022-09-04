@@ -1,9 +1,8 @@
 import sys
 from enum import Enum
-from pathlib import Path
 from typing import Dict, List
 
-sys.path.append(Path(__file__).resolve().parent.parent.parent)
+sys.path.append('../../../')
 
 from org.apache.rocketmq.client.consumer.store import LocalFileOffsetStore as JLocalFileOffsetStore
 from org.apache.rocketmq.client.consumer.store import OffsetStore as JOffsetStore

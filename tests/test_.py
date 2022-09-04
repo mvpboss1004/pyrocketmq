@@ -9,7 +9,7 @@ if not jpype.isJVMStarted():
     jpype.startJVM(classpath=os.environ.get('CLASSPATH','').split(','))
 
 from pyrocketmq.common.common import ConsumeFromWhere, ExpressionType, MessageModel, Throwable
-from pyrpcketmq.common.message import Message, MessageExt, MessageQueue
+from pyrocketmq.common.message import Message, MessageExt, MessageQueue
 from pyrocketmq.client.producer import MessageQueueSelector, Producer, SendCallback, SendResult, SendStatus
 from pyrocketmq.client.consumer.consumer import MessageSelector, PullCallback, PullConsumer, PullResult, PullStatus, PushConsumer
 from pyrocketmq.client.consumer.listener import ConsumeConcurrentlyContext, ConsumeConcurrentlyStatus, ConsumeOrderlyContext, ConsumeOrderlyStatus, MessageListenerConcurrently, MessageListenerOrderly
