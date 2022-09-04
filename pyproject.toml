@@ -37,3 +37,6 @@ addopts = [
     "-vs",
     "-vv",
 ]
+pythonpath = [
+    "src",
+]

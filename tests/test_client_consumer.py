@@ -6,7 +6,9 @@ import jpype.imports
 if not jpype.isJVMStarted():
     jpype.startJVM(classpath=os.environ.get('CLASSPATH','').split(','))
 
-from pyrocketmq import *
+from pyrocketmq.client.consumer.rebalance import AllocateMachineRoomNearby, AllocateMessageQueueAveragely, AllocateMessageQueueAveragelyByCircle, AllocateMessageQueueByConfig, AllocateMessageQueueByMachineRoom, AllocateMessageQueueConsistentHash, HashFunction, MachineRoomResolver
+from pyrocketmq.client.consumer.store import OffsetStoreMap, ReadOffsetType
+from pyrocketmq.common.message import MessageQueue
 
 class TestRebalance:
     class MyHashFunction(HashFunction):

@@ -1,10 +1,10 @@
 import sys
 from abc import abstractmethod
 from enum import Enum
-from os.path import dirname
+from pathlib import Path
 from typing import Any, List, Optional, Union
 
-sys.path.append(dirname(dirname(__file__)))
+sys.path.append(Path(__file__).resolve().parent.parent)
 
 from jpype import JImplements, JOverride
 from java.lang import Object as JObject
@@ -18,7 +18,8 @@ from org.apache.rocketmq.client.producer import SendStatus as JSendStatus
 from org.apache.rocketmq.common.message import Message as JMessage
 
 from .client import BaseClient
-from common import Throwable, Message, MessageQueue
+from common.common import Throwable
+from common.message import Message, MessageQueue
 
 class SendStatus(Enum):
     SEND_OK = JSendStatus.SEND_OK

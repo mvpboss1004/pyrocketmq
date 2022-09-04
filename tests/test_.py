@@ -1,13 +1,19 @@
 import os
 import json
 from time import sleep
+from typing import Any, List
 
 import jpype
 import jpype.imports
 if not jpype.isJVMStarted():
     jpype.startJVM(classpath=os.environ.get('CLASSPATH','').split(','))
 
-from pyrocketmq import *
+from pyrocketmq.common.common import ConsumeFromWhere, ExpressionType, MessageModel, Throwable
+from pyrpcketmq.common.message import Message, MessageExt, MessageQueue
+from pyrocketmq.client.producer import MessageQueueSelector, Producer, SendCallback, SendResult, SendStatus
+from pyrocketmq.client.consumer.consumer import MessageSelector, PullCallback, PullConsumer, PullResult, PullStatus, PushConsumer
+from pyrocketmq.client.consumer.listener import ConsumeConcurrentlyContext, ConsumeConcurrentlyStatus, ConsumeOrderlyContext, ConsumeOrderlyStatus, MessageListenerConcurrently, MessageListenerOrderly
+
 from .conftest import java_get_set_is
 
 class TestProducer:
@@ -71,7 +77,7 @@ class TestConsumer:
 
     def test_BaseConsumer(self):
         print('')
-        for Class in (PushConsumer,PushConsumer):
+        for Class in (PullConsumer,PushConsumer):
             cs = Class()
             for value,attrs in [
                 ('x', ('ConsumerGroup',)),

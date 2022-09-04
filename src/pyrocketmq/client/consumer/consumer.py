@@ -1,10 +1,10 @@
 import sys
 from abc import abstractmethod
 from enum import Enum
-from os.path import dirname
+from pathlib import Path
 from typing import Dict, List, Optional, Union
 
-sys.path.append(dirname(dirname(__file__)))
+sys.path.append(Path(__file__).resolve().parent.parent.parent)
 
 from jpype import JImplements, JOverride
 from java.lang import Throwable as JThrowable
@@ -18,11 +18,12 @@ from org.apache.rocketmq.client.consumer import PullCallback as JPullCallback
 from org.apache.rocketmq.client.consumer import PullResult as JPullResult
 from org.apache.rocketmq.client.consumer import PullStatus as JPullStatus
 
-from common import ConsumeFromWhere, ExpressionType, MessageExt, MessageQueue, Throwable
-from client import BaseClient
+from common.common import ConsumeFromWhere, ExpressionType, MessageModel, Throwable
+from common.message import MessageExt, MessageQueue
+from client.client import BaseClient
 from .listener import MessageListenerConcurrently, MessageListenerOrderly
 from .rebalance import BaseAllocateMessageQueueStrategy
-from .store import MessageModel, OffsetStore
+from .store import OffsetStore
 
 class PullStatus(Enum):
     FOUND = JPullStatus.FOUND
@@ -51,7 +52,7 @@ class MessageSelector:
 
     @property
     def expressionType(self) -> ExpressionType:
-        return ExpressionType(self.this.getExpressionType())
+        return ExpressionType(str(self.this.getExpressionType()))
     
     @property
     def expression(self) -> str:

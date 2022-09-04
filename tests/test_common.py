@@ -7,15 +7,19 @@ if not jpype.isJVMStarted():
     jpype.startJVM(classpath=os.environ.get('CLASSPATH','').split(','))
 
 from java.lang import Exception as JException
+from java.net import InetSocketAddress
+from org.apache.rocketmq.common.message import Message as JMessage
 
-from pyrocketmq import *
+from pyrocketmq.common.common import ExpressionType, LanguageCode, MessageModel, Throwable
+from pyrocketmq.common.message import socket2tuple, Message, MessageBatch, MessageExt, MessageQueue
+
 from .conftest import java_get_set_is
 
 
 class TestCommon:
     def test_enums(self):
         print('')
-        for e in (ExpressionType,MessageModel,LanguageCode):
+        for e in (ExpressionType,LanguageCode,MessageModel):
             print(','.join([str(i) for i in e]))
         for lc,code in zip(LanguageCode, range(len(LanguageCode))):
             assert(lc == LanguageCode.valueOf(code))

@@ -1,14 +1,15 @@
 import sys
-from os.path import dirname
+from pathlib import Path
 from typing import List, Optional, Union
 
-sys.path.append(dirname(dirname(__file__)))
+sys.path.append(Path(__file__).resolve().parent.parent)
 
 from java.util import ArrayList
 from org.apache.rocketmq.client import ClientConfig as JClientConfig
 from org.apache.rocketmq.client import QueryResult as JQueryResult
 
-from common import LanguageCode, MessageExt, MessageQueue
+from common.common import LanguageCode
+from common.message import MessageExt, MessageQueue
 
 class QueryResult(list):
     def __init__(self,

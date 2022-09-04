@@ -1,10 +1,10 @@
 import sys
 from abc import abstractmethod
 from enum import Enum
-from os.path import dirname
+from pathlib import Path
 from typing import List, Optional
 
-sys.path.append(dirname(dirname(__file__)))
+sys.path.append(Path(__file__).resolve().parent.parent.parent)
 
 from jpype import JImplements, JOverride
 from java.util import List as JList
@@ -15,7 +15,7 @@ from org.apache.rocketmq.client.consumer.listener import ConsumeOrderlyStatus as
 from org.apache.rocketmq.client.consumer.listener import MessageListenerConcurrently as JMessageListenerConcurrently
 from org.apache.rocketmq.client.consumer.listener import MessageListenerOrderly as JMessageListenerOrderly
 
-from common import MessageExt, MessageQueue
+from common.message import MessageExt, MessageQueue
 
 
 class ConsumeConcurrentlyStatus(Enum):

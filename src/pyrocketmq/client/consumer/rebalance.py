@@ -1,9 +1,9 @@
 import sys
 from abc import abstractmethod
-from os.path import dirname
+from pathlib import Path
 from typing import List, Optional
 
-sys.path.append(dirname(dirname(dirname(__file__))))
+sys.path.append(Path(__file__).resolve().parent.parent.parent)
 
 from jpype import JImplements, JOverride
 from java.util import ArrayList
@@ -17,7 +17,7 @@ from org.apache.rocketmq.client.consumer.rebalance import AllocateMessageQueueCo
 from org.apache.rocketmq.client.consumer.rebalance.AllocateMachineRoomNearby import MachineRoomResolver as JMachineRoomResolver
 from org.apache.rocketmq.common.consistenthash import HashFunction as JHashFunction
 
-from common import MessageQueue
+from common.message import MessageQueue
 
 
 @JImplements(JMachineRoomResolver)
