@@ -47,7 +47,8 @@ Currently the existing apis are too outdated. For example:
 .. code-block::  python
 
     import json
-    from pyrocketmq import Producer, Message, SendStatus
+    from pyrocketmq.common.message import Message
+    from pyrocketmq.client.producer import Producer, SendStatus
     pr = Producer('test_producer')
     pr.setNamesrvAddr('localhost:9876')
     pr.start()
@@ -64,7 +65,7 @@ Currently the existing apis are too outdated. For example:
 .. code-block::  python
 
     import json
-    from pyrocketmq import PullConsumer, PullStatus
+    from pyrocketmq.client.consumer.consumer import PullConsumer, PullStatus
     cs = PullConsumer('test_pull_consumer')
     cs.setNamesrvAddr('localhost:9876')
     topic = 'test_topic'
@@ -88,13 +89,10 @@ Currently the existing apis are too outdated. For example:
     import json
     import time
     from typing import List
-    from pyrocketmq import (ConsumeConcurrentlyContext,
-                            ConsumeConcurrentlyStatus,
-                            ConsumeFromWhere,
-                            PushConsumer,
-                            MessageExt,
-                            MessageListenerConcurrently,
-                            MessageSelector)
+    from pyrocketmq.client.consumer.listener import ConsumeConcurrentlyContext, ConsumeConcurrentlyStatus, MessageListenerConcurrently
+    from pyrocketmq.client.consumer.consumer import MessageSelector, PushConsumer
+    from pyrocketmq.common.common import ConsumeFromWhere
+    from pyrocketmq.common.message import MessageExt
     
     # subclass MessageListenerConcurrently to write your own consume action
     class MyMessageListenerConcurrently(MessageListenerConcurrently):
