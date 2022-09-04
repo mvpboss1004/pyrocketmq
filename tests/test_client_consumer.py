@@ -41,7 +41,7 @@ class TestRebalance:
         stg = AllocateMessageQueueByMachineRoom()
         stg.setConsumeridcs(cidAll[:1])
         assert(stg.consumeridcs == cidAll[:1])
-        assert(stg.allocate(text, cidAll[1], mqAll, cidAll)[0].queueId == 0)
+        assert(stg.allocate(text, cidAll[0], mqAll, cidAll)[0].queueId == 0)
 
         stg = AllocateMessageQueueConsistentHash(
             virtualNodecnt = len(mqAll),

@@ -136,7 +136,7 @@ class BaseConsumer(BaseClient):
             (allocate_message_queue_strategy)
         
     def setAllocateMessageQueueStrategy(self, allocateMessageQueueStrategy:BaseAllocateMessageQueueStrategy):
-        self.this.setAllocateMessageQueueStrategy(BaseAllocateMessageQueueStrategy.this)
+        self.this.setAllocateMessageQueueStrategy(allocateMessageQueueStrategy.this)
     
     @property
     def consumerGroup(self) -> str:
