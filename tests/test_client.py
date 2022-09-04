@@ -1,5 +1,10 @@
 import os
 
+import jpype
+import jpype.imports
+if not jpype.isJVMStarted():
+    jpype.startJVM(classpath=os.environ.get('CLASSPATH','').split(','))
+
 from pyrocketmq import *
 from .conftest import java_get_set_is
 

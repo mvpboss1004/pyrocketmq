@@ -1,4 +1,10 @@
+import os
 from datetime import datetime
+
+import jpype
+import jpype.imports
+if not jpype.isJVMStarted():
+    jpype.startJVM(classpath=os.environ.get('CLASSPATH','').split(','))
 
 from java.lang import Exception as JException
 

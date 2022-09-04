@@ -1,4 +1,10 @@
+import os 
 from murmurhash.mrmr import hash
+
+import jpype
+import jpype.imports
+if not jpype.isJVMStarted():
+    jpype.startJVM(classpath=os.environ.get('CLASSPATH','').split(','))
 
 from pyrocketmq import *
 
