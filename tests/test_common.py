@@ -3,7 +3,7 @@ from datetime import datetime
 from java.lang import Exception as JException
 
 from pyrocketmq import *
-from .helpers import java_get_set_is
+from .conftest import java_get_set_is
 
 
 class TestCommon:
