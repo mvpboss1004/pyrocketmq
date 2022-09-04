@@ -39,8 +39,8 @@ class TestRebalance:
         assert(stg.allocate(text, cidAll[1], mqAll, cidAll) == stg.messageQueueList)
         
         stg = AllocateMessageQueueByMachineRoom()
-        stg.setConsumeridcs(cidAll[:1])
-        assert(stg.consumeridcs == cidAll[:1])
+        stg.setConsumeridcs(cidAll)
+        assert(sorted(stg.consumeridcs) == cidAll)
         assert(stg.allocate(text, cidAll[0], mqAll, cidAll)[0].queueId == 0)
 
         stg = AllocateMessageQueueConsistentHash(
