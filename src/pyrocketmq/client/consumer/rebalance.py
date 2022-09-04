@@ -24,7 +24,7 @@ class MachineRoomResolver:
 
     @JOverride
     def consumerDeployIn(self, clientID):
-        return self._consumerDeployIn(clientID)
+        return self._consumerDeployIn(str(clientID))
 
     @abstractmethod
     def _brokerDeployIn(self, messageQueue:MessageQueue) -> str:

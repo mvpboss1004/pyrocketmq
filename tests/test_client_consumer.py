@@ -21,10 +21,10 @@ class TestRebalance:
             return 'Room' + str(ord(text[-1])%2)
 
         def _brokerDeployIn(self, messageQueue:MessageQueue) -> str:
-            TestRebalance.MyMachineRoomResolver.room_by_last_char(messageQueue.brokerName)
+            return TestRebalance.MyMachineRoomResolver.room_by_last_char(messageQueue.brokerName)
 
         def _consumerDeployIn(self, clientID:str) -> str:
-            TestRebalance.MyMachineRoomResolver.room_by_last_char(clientID)
+            return TestRebalance.MyMachineRoomResolver.room_by_last_char(clientID)
     
     def test_AllocateMessageQueueStrategyBase(self):
         text = 'x'
