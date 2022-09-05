@@ -73,7 +73,7 @@ Currently the existing apis are too outdated. For example:
     # pull messages from each queue
     mqs = cs.fetchSubscribeMessageQueues(topic)
     for mq in mqs:
-        ofs = cs.fetchConsumeOffset(mq, False)
+        ofs = cs.minOffset(mq)
         pr = cs.pull(mq, subExpression='girl', offset=ofs, maxNums=1)
         if pr.pullStatus == PullStatus.FOUND:
             # iterate msg in pull result

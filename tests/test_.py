@@ -217,15 +217,13 @@ class TestIntegration:
 
         # pull with timeout
         for mq in mqs:
-            ofs = cs.fetchConsumeOffset(mq, False)
-            pr = cs.pull(mq, subExpression=TestIntegration.TAGS, offset=ofs, maxNums=1, timeout=to)
+            pr = cs.pull(mq, subExpression=TestIntegration.TAGS, offset=cs.minOffset(mq), maxNums=1, timeout=to)
             assert(pr.pullStatus == PullStatus.FOUND)
         
         # pull with callback
         cb = TestIntegration.MyPullCallback()
         for mq in mqs:
-            ofs = cs.fetchConsumeOffset(mq, False)
-            pr = cs.pull(mq, subExpression=TestIntegration.TAGS, offset=ofs, maxNums=1, pullCallback=cb)
+            pr = cs.pull(mq, subExpression=TestIntegration.TAGS, offset=cs.minOffset(mq), maxNums=1, pullCallback=cb)
         
         cs.shutdown()
     

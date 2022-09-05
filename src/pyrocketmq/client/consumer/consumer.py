@@ -244,7 +244,7 @@ class PullConsumer(BaseConsumer):
         self.updateConsumeOffset(mq.this, offset)
     
     def fetchConsumeOffset(self, mq:MessageQueue, fromStore:bool) -> int:
-        return max(int(self.this.fetchConsumeOffset(mq.this, fromStore)), 0)
+        return int(self.this.fetchConsumeOffset(mq.this, fromStore))
     
     def fetchMessageQueuesInBalance(self, topic:str) -> List[MessageQueue]:
         return [MessageQueue(mq) for mq in self.this.fetchMessageQueuesInBalance(topic)]
