@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, unique
 from typing import Dict, List
 
 from org.apache.rocketmq.client.consumer.store import LocalFileOffsetStore as JLocalFileOffsetStore

@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from enum import Enum
+from enum import Enum, unique
 from typing import List, Optional
 
 from jpype import JImplements, JOverride
@@ -19,7 +19,7 @@ class ConsumeConcurrentlyStatus(Enum):
 
 class ConsumeOrderlyStatus(Enum):
     SUCCESS = JConsumeOrderlyStatus.SUCCESS
-    SUSPEND_CURRENT_QUEUE_A_MOMENT = JConsumeOrderlyStatus.SUCCESS
+    SUSPEND_CURRENT_QUEUE_A_MOMENT = JConsumeOrderlyStatus.SUSPEND_CURRENT_QUEUE_A_MOMENT
 
 class BaseConsumeContext:
     def __init__(self, ConsumeContextClass, consume_context=None, message_queue:Optional[MessageQueue]=None):

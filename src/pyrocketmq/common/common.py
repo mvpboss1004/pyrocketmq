@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, unique
 from typing import Optional
 
 from java.io import ByteArrayOutputStream, PrintStream
@@ -46,6 +46,13 @@ class LanguageCode(Enum):
     @property
     def code(self) -> int:
         return int(self.value.getCode())
+
+class LogLevel(Enum):
+    TRACE = 'TRACE'
+    DEBUG = 'DEBUG'
+    INFO = 'INFO'
+    WARN = 'WARN'
+    ERROR = 'ERROR'
 
 class Throwable:
     def __init__(self, throwable:Optional[JThrowable]=None, message:Optional[str]=None, cause=None):

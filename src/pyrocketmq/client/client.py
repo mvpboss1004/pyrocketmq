@@ -1,10 +1,11 @@
 from typing import List, Optional, Union
 
+from java.lang import System
 from java.util import ArrayList
 from org.apache.rocketmq.client import ClientConfig as JClientConfig
 from org.apache.rocketmq.client import QueryResult as JQueryResult
 
-from ..common.common import LanguageCode
+from ..common.common import LanguageCode, LogLevel
 from ..common.message import MessageExt, MessageQueue
 
 class QueryResult(list):
@@ -29,8 +30,40 @@ class QueryResult(list):
         return int(self.this.getIndexLastUpdateTimestamp())
 
 class ClientConfig:
-    def __init__(self, client_config:Optional[JClientConfig]=None):
-        self.this = JClientConfig() if client_config is None else client_config
+    def __init__(self,
+        client_config:Optional[JClientConfig] = None,
+        logUseSlf4j:Optional[bool] = None,
+        logRoot:Optional[str] = None,
+        logFileMaxIndex:Optional[int] = None,
+        logFileMaxSize:Optional[int] = None,
+        logLevel:Union[LogLevel,str,None] = None,
+        logAdditive:Optional[bool] = None,
+        logFileName:Optional[str] = None,
+        logAsyncQueueSize:Optional[int] = None,
+    *args, **kwargs):
+        if client_config is not None and (
+            logUseSlf4j is not None or logRoot is not None or logFileMaxIndex is not None or logFileMaxSize is not None\
+            or logLevel is not None or logAdditive is not None or logFileName is not None or logAsyncQueueSize is not None
+        ):
+            raise Exception('At most one of client_config and logUseSlf4j+logRoot+logFileMaxIndex+logFileMaxSize+logLevel+logAdditive+logFileName+logAsyncQueueSize can be specified')
+        elif client_config is None:
+            prefix = 'rocketmq.client.'
+            for _type, keys in [
+                (bool, ('logUseSlf4j',)),
+                (str, ('logRoot','logFileName')),
+                (int, ('logFileMaxIndex','logFileMaxSize','logAsyncQueueSize')),
+            ]:
+                for key in keys:
+                    value = eval(key)
+                    if value is not None:
+                        System.setProperty(prefix+key, _type(value))
+            if logLevel is not None:
+                System.setProperty(prefix+'logLevel', LogLevel(logLevel).value)
+            if logAdditive is not None:
+                System.setProperty(prefix+'log.additive', bool(logAdditive))
+            self.this = JClientConfig()
+        else:
+            self.this = client_config
 
     def buildMQClientId(self) -> str:
         return str(self.this.buildMQClientId())

@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from enum import Enum
+from enum import Enum, unique
 from typing import Dict, List, Optional, Union
 
 from jpype import JImplements, JOverride
