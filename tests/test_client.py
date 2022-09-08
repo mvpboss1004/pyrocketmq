@@ -1,5 +1,5 @@
 import os
-from tempfile import NamedTemporaryFile, TemporaryDirectory
+from tempfile import NamedTemporaryFile
 
 import jpype
 import jpype.imports
@@ -45,24 +45,25 @@ class TestLog:
             print(','.join([str(i) for i in e]))
     
     def test_basicConfig(self):
-        with TemporaryDirectory() as root:
-            with NamedTemporaryFile(dir=root, delete=False) as fileName:
-                os.environ['CLIENT_LOG_USESLF4J'] = 'TRUE'
-                os.environ['CLIENT_LOG_MAXINDEX'] = '1'
-                os.environ['CLIENT_LOG_FILESIZE'] = '1024'
-                os.environ['CLIENT_LOG_LEVEL'] = 'WARN'
-                basicConfig(root=root, fileName=fileName.name)
-                logger = getLogger()
-                print(logger.name, root, fileName.name)
-                logger.debug(f'__{LogLevel.DEBUG.value}__')
-                logger.info(f'__{LogLevel.INFO.value}__')
-                logger.warn(f'__{LogLevel.WARN.value}__')
-                msg = 'helloworld'
-                logger.error(f'__{LogLevel.ERROR.value}__', Throwable(msg))
-                with open(fileName.name) as f:
-                    text = f.read()
-                for level in (LogLevel.DEBUG, LogLevel.INFO):
-                    assert(f'__{level.value}__' not in text)
-                for level in (LogLevel.WARN, LogLevel.ERROR):
-                    assert(f'__{level.value}__' in text)
-                assert(msg in text)
+        with NamedTemporaryFile(delete=False) as f:
+            os.environ['CLIENT_LOG_USESLF4J'] = 'TRUE'
+            os.environ['CLIENT_LOG_MAXINDEX'] = '1'
+            os.environ['CLIENT_LOG_FILESIZE'] = '1024'
+            os.environ['CLIENT_LOG_LEVEL'] = 'WARN'
+            root = os.path.dirname(f.name)
+            fileName = os.path.split(f.name)[-1]
+            basicConfig(root=root, fileName=fileName)
+            logger = getLogger()
+            print(logger.name, root, fileName)
+            logger.debug(f'__{LogLevel.DEBUG.value}__')
+            logger.info(f'__{LogLevel.INFO.value}__')
+            logger.warn(f'__{LogLevel.WARN.value}__')
+            msg = 'helloworld'
+            logger.error(f'__{LogLevel.ERROR.value}__', Throwable(msg))
+            with open(f.name) as f:
+                text = f.read()
+            for level in (LogLevel.DEBUG, LogLevel.INFO):
+                assert(f'__{level.value}__' not in text)
+            for level in (LogLevel.WARN, LogLevel.ERROR):
+                assert(f'__{level.value}__' in text)
+            assert(msg in text)
