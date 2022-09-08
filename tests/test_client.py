@@ -46,14 +46,14 @@ class TestLog:
     
     def test_basicConfig(self):
         with TemporaryDirectory() as root:
-            with NamedTemporaryFile(dir=root.name, delete=False) as fileName:
+            with NamedTemporaryFile(dir=root, delete=False) as fileName:
                 os.environ['CLIENT_LOG_USESLF4J'] = 'TRUE'
                 os.environ['CLIENT_LOG_MAXINDEX'] = '1'
                 os.environ['CLIENT_LOG_FILESIZE'] = '1024'
                 os.environ['CLIENT_LOG_LEVEL'] = 'WARN'
-                basicConfig(root=root.name, fileName=fileName.name)
+                basicConfig(root=root, fileName=fileName.name)
                 logger = getLogger()
-                print(logger.name, root.name, fileName.name)
+                print(logger.name, root, fileName.name)
                 logger.debug(f'__{LogLevel.DEBUG.value}__')
                 logger.info(f'__{LogLevel.INFO.value}__')
                 logger.warn(f'__{LogLevel.WARN.value}__')
