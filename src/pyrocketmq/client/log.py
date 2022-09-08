@@ -15,7 +15,7 @@ class LogLevel(Enum):
     ERROR = 'error'
 
 class InternalLogger:
-    def __self__(self, logger:JInternalLogger):
+    def __init__(self, logger:JInternalLogger):
         self. this = logger
     
     @property
