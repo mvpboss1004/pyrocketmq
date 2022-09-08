@@ -1,18 +1,11 @@
-import os
-from enum import Enum
-from typing import Optional, Union
+from typing import Union
 
-from java.lang import System
 from org.apache.rocketmq.logging import InternalLogger as JInternalLogger
 from org.apache.rocketmq.client.log import ClientLogger
 
-from ..common.common import Throwable
+from ...common.common import Throwable
 
-class LogLevel(Enum):
-    DEBUG = 'debug'
-    INFO = 'info'
-    WARN = 'warn'
-    ERROR = 'error'
+from .__init__ import LogLevel
 
 class InternalLogger:
     def __init__(self, logger:JInternalLogger):
@@ -50,30 +43,6 @@ class InternalLogger:
     
     def error(self, var1:str, *args):
         self.log(LogLevel.ERROR, var1, *args)
-
-def basicConfig(
-    useSlf4j:Optional[bool] = None,
-    root:Optional[str] = None,
-    fileMaxIndex:Optional[int] = None,
-    fileMaxSize:Optional[int] = None,
-    level:Union[LogLevel,str,None] = None,
-    fileName:Optional[str] = None,
-):
-    java_prefix = 'rocketmq.client.log'
-    env_prefix = 'CLIENT_LOG_'
-    for _type, keys in [
-        (bool, ('useSlf4j',)),
-        (str, ('root','fileName')),
-        (int, ('fileMaxIndex','fileMaxSize')),
-        (lambda x: LogLevel(str(x).lower()).value, ('level',)),
-    ]:
-        for key in keys:
-            if eval(key) is not None:
-                value = eval(key)
-            else:
-                value = os.environ.get(env_prefix + (key[3:].upper()), None)
-            if value is not None:
-                System.setProperty(java_prefix + key.capitalize(), str(_type(value)))
 
 def getLogger() -> InternalLogger:
     return InternalLogger(ClientLogger.getLog())

@@ -1,5 +1,4 @@
 import os
-from tempfile import NamedTemporaryFile
 
 import jpype
 import jpype.imports
@@ -7,7 +6,6 @@ if not jpype.isJVMStarted():
     jpype.startJVM(classpath=os.environ.get('CLASSPATH','').split(','))
 
 from pyrocketmq.client.client import ClientConfig, QueryResult
-from pyrocketmq.client.log import basicConfig, getLogger, LogLevel
 from pyrocketmq.common.common import LanguageCode, Throwable
 from pyrocketmq.common.message import MessageExt
 
@@ -37,33 +35,3 @@ class TestClient:
         assert(int(cc.instanceName) == os.getpid())
         cc.resetClientConfig(cc.cloneClientConfig())
         print(cc.buildMQClientId())
-
-class TestLog:
-    def test_enums(self):
-        print('')
-        for e in (LogLevel,):
-            print(','.join([str(i) for i in e]))
-    
-    def test_basicConfig(self):
-        with NamedTemporaryFile() as f:
-            root = os.path.dirname(f.name)
-            fileName = os.path.split(f.name)[-1]
-        os.environ['CLIENT_LOG_USESLF4J'] = 'TRUE'
-        os.environ['CLIENT_LOG_MAXINDEX'] = '1'
-        os.environ['CLIENT_LOG_FILESIZE'] = '1024'
-        os.environ['CLIENT_LOG_LEVEL'] = 'WARN'
-        basicConfig(root=root, fileName=fileName)
-        logger = getLogger()
-        print(logger.name, root, fileName)
-        logger.debug(f'__{LogLevel.DEBUG.value}__')
-        logger.info(f'__{LogLevel.INFO.value}__')
-        logger.warn(f'__{LogLevel.WARN.value}__')
-        msg = 'helloworld'
-        logger.error(f'__{LogLevel.ERROR.value}__', Throwable(msg))
-        with open(os.path.join(root, fileName)) as f:
-            text = f.read()
-        for level in (LogLevel.DEBUG, LogLevel.INFO):
-            assert(f'__{level.value}__' not in text)
-        for level in (LogLevel.WARN, LogLevel.ERROR):
-            assert(f'__{level.value}__' in text)
-        assert(msg in text)
