@@ -45,7 +45,7 @@ class TestLog:
             print(','.join([str(i) for i in e]))
     
     def test_basicConfig(self):
-        with TemporaryDirectory(ignore_cleanup_errors=True) as root:
+        with TemporaryDirectory() as root:
             with NamedTemporaryFile(dir=root.name, delete=False) as fileName:
                 os.environ['CLIENT_LOG_USESLF4J'] = 'TRUE'
                 os.environ['CLIENT_LOG_MAXINDEX'] = '1'
@@ -53,7 +53,7 @@ class TestLog:
                 os.environ['CLIENT_LOG_LEVEL'] = 'WARN'
                 basicConfig(root=root.name, fileName=fileName.name)
                 logger = getLogger()
-                print(logger.name)
+                print(logger.name, root.name, fileName.name)
                 logger.debug(f'__{LogLevel.DEBUG.value}__')
                 logger.info(f'__{LogLevel.INFO.value}__')
                 logger.warn(f'__{LogLevel.WARN.value}__')

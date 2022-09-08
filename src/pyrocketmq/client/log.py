@@ -1,13 +1,14 @@
 import os
+from enum import Enum
 from typing import Optional, Union
 
 from java.lang import System
-from org.apache.rocketmq import InternalLogger as JInternalLogger
+from org.apache.rocketmq.logging import InternalLogger as JInternalLogger
 from org.apache.rocketmq.client.log import ClientLogger
 
 from ..common.common import Throwable
 
-class LogLevel:
+class LogLevel(Enum):
     DEBUG = 'debug'
     INFO = 'info'
     WARN = 'warn'
