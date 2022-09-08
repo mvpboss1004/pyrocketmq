@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from enum import Enum, unique
+from enum import Enum
 from typing import Any, List, Optional, Union
 
 from jpype import JImplements, JOverride
@@ -31,7 +31,7 @@ class SendResult:
         offsetMsgId:Optional[str] = None,
         messageQueue:Optional[MessageQueue] = None,
         queueOffset:Optional[int] = None,
-        *args, **kwargs):
+    ):
         if send_result is None:
             self.this = JSendResult()
             if sendStatus is not None:

@@ -15,8 +15,9 @@ def socket2tuple(sock:InetSocketAddress) -> Tuple[str,int]:
     return (ip,port)
 
 class Message:
-    def __init__(self, message:Optional[JMessage]=None, topic:Optional[str]=None, body:Optional[bytes]=None,
-        tags:str='', keys:str='', flag:int=0, waitStoreMsgOK:int=True, *args, **kwargs
+    def __init__(self,
+        message:Optional[JMessage]=None, topic:Optional[str]=None, body:Optional[bytes]=None,
+        tags:str='', keys:str='', flag:int=0, waitStoreMsgOK:int=True
     ):
         if message is None:
             if topic and body:
@@ -120,7 +121,7 @@ class MessageExt(Message):
         storeTimestamp:Optional[int] = None,
         storeHost:Optional[Tuple[str,int]] = None,
         msgId:Optional[str] = None,
-        *args, **kwargs):
+    ):
         self.this = JMessageExt() if message_ext is None else message_ext
         if queueId is not None:
             self.setQueueId(queueId)
@@ -240,7 +241,7 @@ class MessageQueue:
         topic:Optional[str] = None,
         brokerName:Optional[str] = None,
         queueId:Optional[int] = None,
-        *args, **kwargs):
+    ):
         if message_queue is None:
             self.this = JMessageQueue()
             if topic:
