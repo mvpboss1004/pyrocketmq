@@ -1,5 +1,5 @@
 import os
-from xml.etree.cElementTree import ElementTree
+from xml.etree.ElementTree import ElementTree
 
 import jpype
 import jpype.imports
@@ -23,7 +23,7 @@ class TestLog:
         for level in LogLevel:
             getattr(logger, level.value)(f'__{level.value}__')
         
-        tree = ElementTree(conf)
+        tree = ElementTree(file=conf)
         log_level = LogLevel.LEVEL(
             tree.find(f"./logger[@name='{logger.name}']/level").attrib['value']
         )
