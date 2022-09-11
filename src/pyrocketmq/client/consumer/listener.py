@@ -73,7 +73,7 @@ class ConsumeOrderlyContext(BaseConsumeContext):
 class MessageListenerConcurrently:
     @JOverride
     def consumeMessage(self, msgs:JList, context:JConsumeConcurrentlyContext):
-        self._consumeMessage([MessageExt(msg) for msg in msgs], ConsumeConcurrentlyContext(context)).value
+        return self._consumeMessage([MessageExt(msg) for msg in msgs], ConsumeConcurrentlyContext(context)).value
     
     @abstractmethod
     def _consumeMessage(self, msgs:List[MessageExt], context:ConsumeConcurrentlyContext) -> ConsumeConcurrentlyStatus:
@@ -83,7 +83,7 @@ class MessageListenerConcurrently:
 class MessageListenerOrderly:
     @JOverride
     def consumeMessage(self, msgs:JList, context:JConsumeOrderlyContext):
-        self._consumeMessage([MessageExt(msg) for msg in msgs], ConsumeOrderlyContext(context)).value
+        return self._consumeMessage([MessageExt(msg) for msg in msgs], ConsumeOrderlyContext(context)).value
 
     @abstractmethod
     def _consumeMessage(self, msgs:List[MessageExt], context:ConsumeOrderlyContext) -> ConsumeOrderlyStatus:
