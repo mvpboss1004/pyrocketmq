@@ -22,11 +22,15 @@ class QueryResult(list):
                 indexLastUpdateTimestamp,
                 messageList if isinstance(messageList,ArrayList) else ArrayList([msg.this for msg in messageList])
             )
-        list.__init__(self, [MessageExt(msg) for msg in self.this.getMessageList()])
+        list.__init__(self, )
 
     @property
     def indexLastUpdateTimestamp(self) -> int:
         return int(self.this.getIndexLastUpdateTimestamp())
+    
+    @property
+    def messageList(self) -> List[MessageExt]:
+        return [MessageExt(msg) for msg in self.this.getMessageList() or []]
 
 class ClientConfig:
     def __init__(self, client_config:Optional[JClientConfig]=None):

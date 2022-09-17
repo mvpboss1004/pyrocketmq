@@ -6,7 +6,7 @@ if not jpype.isJVMStarted():
     jpype.startJVM(classpath=os.environ.get('CLASSPATH','').split(','))
 
 from pyrocketmq.client.client import ClientConfig, QueryResult
-from pyrocketmq.common.common import LanguageCode, Throwable
+from pyrocketmq.common.common import LanguageCode
 from pyrocketmq.common.message import MessageExt
 
 from .conftest import java_get_set_is

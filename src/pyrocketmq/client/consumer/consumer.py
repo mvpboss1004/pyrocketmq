@@ -71,7 +71,7 @@ class PullResult(list):
             self.this = JPullResult(pullStatus.value, nextBeginOffset, minOffset, maxOffset,
                 msgFoundList if isinstance(msgFoundList,ArrayList) else ArrayList([m.this for m in msgFoundList])
             )
-        list.__init__(self, [MessageExt(msg) for msg in self.this.getMsgFoundList()])
+        list.__init__(self, msgFoundList)
 
     @property
     def pullStatus(self) -> PullStatus:
@@ -88,6 +88,10 @@ class PullResult(list):
     @property
     def maxOffset(self) -> int:
         return int(self.this.getMaxOffset())
+    
+    @property
+    def msgFoundList(self) -> List[MessageExt]:
+        return [MessageExt(msg) for msg in self.this.getMsgFoundList() or []]
 
 @JImplements(JPullCallback)
 class PullCallback:
@@ -156,7 +160,7 @@ class BaseConsumer(BaseClient):
         self.this.sendMessageBack(msg.this, delayLevel, brokerName)
 
     def fetchSubscribeMessageQueues(self, topic:str) -> List[MessageQueue]:
-        return [MessageQueue(mq) for mq in self.this.fetchSubscribeMessageQueues(topic)]
+        return [MessageQueue(mq) for mq in self.this.fetchSubscribeMessageQueues(topic) or []]
 
     @property
     def offsetStore(self) -> OffsetStore:
@@ -212,7 +216,7 @@ class PullConsumer(BaseConsumer):
     
     @property
     def registerTopics(self) -> List[str]:
-        return [str(t) for t in self.this.getRegisterTopics()]
+        return [str(t) for t in self.this.getRegisterTopics() or []]
 
     def setRegisterTopics(self, registerTopics:Union[HashSet,List[str]]):
         rt = registerTopics if isinstance(registerTopics,HashSet) else HashSet(registerTopics)
@@ -247,7 +251,7 @@ class PullConsumer(BaseConsumer):
         return int(self.this.fetchConsumeOffset(mq.this, fromStore))
     
     def fetchMessageQueuesInBalance(self, topic:str) -> List[MessageQueue]:
-        return [MessageQueue(mq) for mq in self.this.fetchMessageQueuesInBalance(topic)]
+        return [MessageQueue(mq) for mq in self.this.fetchMessageQueuesInBalance(topic) or []]
 
 class PushConsumer(BaseConsumer):
     def __init__(self, consumerGroup:Optional[str]=None):
@@ -332,7 +336,7 @@ class PushConsumer(BaseConsumer):
 
     @property
     def subscription(self) -> Dict[str,str]:
-        return {str(k):str(v) for k,v in self.this.getSubscription().items()}
+        return {str(k):str(v) for k,v in (self.this.getSubscription() or {}).items()}
 
     def setSubscription(self, subscription:Dict[dict,dict]):
         self.this.setSubscription(subscription)

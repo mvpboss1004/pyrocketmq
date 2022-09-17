@@ -83,7 +83,7 @@ class Message:
 
     @property
     def properties(self) -> Dict[str,str]:
-        return {str(k):str(v) for k,v in self.this.getProperties().items()}
+        return {str(k):str(v) for k,v in (self.this.getProperties() or {}).items()}
 
     @property
     def buyerId(self) -> str:
@@ -102,7 +102,7 @@ class Message:
 class MessageBatch(list):
     def __init__(self, message_batch:JMessageBatch):
         self.this = message_batch
-        list.__init__(self, [Message(msg) for msg in self.this.iterator()])
+        list.__init__(self, [Message(msg) for msg in self.this.iterator() or []])
     
     @staticmethod
     def generateFromList(messages:Union[ArrayList, List[Message]]):

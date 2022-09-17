@@ -143,7 +143,7 @@ class Producer(BaseClient):
         BaseClient.__init__(self, DefaultMQProducer, producerGroup)
 
     def fetchPublishMessageQueues(self, topic:str) -> List[MessageQueue]:
-        return [MessageQueue(mq) for mq in self.this.fetchPublishMessageQueues(topic)]
+        return [MessageQueue(mq) for mq in self.this.fetchPublishMessageQueues(topic) or []]
 
     def send(self, msgs:Union[Message, List[Message]], *,
         mq:Optional[MessageQueue]=None,
@@ -262,14 +262,14 @@ class Producer(BaseClient):
 
     @property
     def notAvailableDuration(self) -> List[int]:
-        return [int(i) for i in self.this.getNotAvailableDuration()]
+        return [int(i) for i in self.this.getNotAvailableDuration() or []]
 
     def setNotAvailableDuration(self, notAvailableDuration:List[int]):
         self.this.setNotAvailableDuration(notAvailableDuration)
 
     @property
     def latencyMax(self) -> List[int]:
-        return [int(i) for i in self.this.getLatencyMax()]
+        return [int(i) for i in self.this.getLatencyMax() or []]
 
     def setLatencyMax(self, latencyMax:List[int]):
         self.this.setLatencyMax(latencyMax)

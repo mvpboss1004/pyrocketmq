@@ -42,7 +42,7 @@ class OffsetStore:
         self.this.removeOffset(mq.this)
 
     def cloneOffsetTable(self, topic:str) -> Dict[MessageQueue,int]:
-        return {MessageQueue(mq):int(ofs) for mq,ofs in self.cloneOffsetTable(topic).items()}
+        return {MessageQueue(mq):int(ofs) for mq,ofs in (self.cloneOffsetTable(topic) or {}).items()}
 
     def updateConsumeOffsetToBroker(self, mq:MessageQueue, offset:int, isOneway:bool):
         self.this.updateConsumeOffsetToBroker(mq.this, offset, isOneway)

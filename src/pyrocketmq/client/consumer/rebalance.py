@@ -47,7 +47,10 @@ class BaseAllocateMessageQueueStrategy:
             self.this = AllocateMessageQueueStrategyClass()
     
     def allocate(self, consumerGroup:str, currentCID:str, mqAll:List[MessageQueue], cidAll:List[str]) -> List[MessageQueue]:
-        return [MessageQueue(mq) for mq in self.this.allocate(consumerGroup, currentCID, ArrayList([mq.this for mq in mqAll]), ArrayList(cidAll))]
+        return [
+            MessageQueue(mq) for mq in
+            self.this.allocate(consumerGroup, currentCID, ArrayList([mq.this for mq in mqAll]), ArrayList(cidAll)) or []
+        ]
 
     @property
     def name(self) -> str:
@@ -80,7 +83,7 @@ class AllocateMessageQueueByConfig(BaseAllocateMessageQueueStrategy):
     
     @property
     def messageQueueList(self) -> List[MessageQueue]:
-        return [MessageQueue(mq) for mq in self.this.getMessageQueueList()]
+        return [MessageQueue(mq) for mq in self.this.getMessageQueueList() or []]
     
     def setMessageQueueList(self, messageQueueList:List[MessageQueue]):
         self.this.setMessageQueueList(ArrayList([mq.this for mq in messageQueueList]))
@@ -91,7 +94,7 @@ class AllocateMessageQueueByMachineRoom(BaseAllocateMessageQueueStrategy):
     
     @property
     def consumeridcs(self) -> List[str]:
-        return [str(idc) for idc in self.this.getConsumeridcs()]
+        return [str(idc) for idc in self.this.getConsumeridcs() or []]
     
     def setConsumeridcs(self, consumeridcs:List[str]):
         self.this.setConsumeridcs(HashSet(consumeridcs))
