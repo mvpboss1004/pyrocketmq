@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from java.util import ArrayList
 from org.apache.rocketmq.client import ClientConfig as JClientConfig
@@ -11,18 +11,16 @@ class QueryResult(list):
     def __init__(self,
         query_result:Optional[JQueryResult] = None,
         indexLastUpdateTimestamp:Optional[int] = None,
-        messageList:Union[ArrayList, List[MessageExt], None] = None,
+        messageList:Optional[List[MessageExt]] = None,
     ):
         if query_result is not None == indexLastUpdateTimestamp is not None and messageList is not None:
             raise Exception('Exactly one of query_result and indexLastUpdateTimestamp+messageList must be specified')
         elif query_result is not None:
             self.this = query_result
+            list.__init__(self, self.messageList)
         else:
-            self.this = JQueryResult(
-                indexLastUpdateTimestamp,
-                messageList if isinstance(messageList,ArrayList) else ArrayList([msg.this for msg in messageList])
-            )
-        list.__init__(self, )
+            self.this = JQueryResult(indexLastUpdateTimestamp, ArrayList([msg.this for msg in messageList]))
+            list.__init__(self, messageList)
 
     @property
     def indexLastUpdateTimestamp(self) -> int:

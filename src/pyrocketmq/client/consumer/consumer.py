@@ -61,17 +61,16 @@ class PullResult(list):
         nextBeginOffset:Optional[int] = None,
         minOffset:Optional[int] = None, 
         maxOffset:Optional[int] = None,
-        msgFoundList:Union[ArrayList, List[MessageExt], None] = None,
+        msgFoundList:Optional[List[MessageExt]] = None,
     ):
         if pull_result is None == (pullStatus is None or nextBeginOffset is None or minOffset is None or maxOffset is None or msgFoundList is None):
             raise Exception('Exactly one of pull_result and nextBeginOffset+minOffset+maxOffset+msgFoundList must be specified')
         elif pull_result is not None:
             self.this = pull_result
+            list.__init__(self, self.msgFoundList)
         else:
-            self.this = JPullResult(pullStatus.value, nextBeginOffset, minOffset, maxOffset,
-                msgFoundList if isinstance(msgFoundList,ArrayList) else ArrayList([m.this for m in msgFoundList])
-            )
-        list.__init__(self, msgFoundList)
+            self.this = JPullResult(pullStatus.value, nextBeginOffset, minOffset, maxOffset, ArrayList([m.this for m in msgFoundList]))
+            list.__init__(self, msgFoundList)
 
     @property
     def pullStatus(self) -> PullStatus:
